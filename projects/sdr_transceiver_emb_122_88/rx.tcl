@@ -3,37 +3,33 @@ cell pavel-demin:user:port_slicer slice_0 {
   DIN_WIDTH 8 DIN_FROM 0 DIN_TO 0
 }
 
-for {set i 0} {$i <= 1} {incr i} {
+# Create port_slicer
+cell pavel-demin:user:port_slicer slice_1 {
+  DIN_WIDTH 64 DIN_FROM 31 DIN_TO 0
+}
 
-  # Create port_slicer
-  cell pavel-demin:user:port_slicer slice_[expr $i + 1] {
-    DIN_WIDTH 64 DIN_FROM [expr 32 * $i + 31] DIN_TO [expr 32 * $i]
-  }
+# Create axis_constant
+cell pavel-demin:user:axis_constant phase_0 {
+  AXIS_TDATA_WIDTH 32
+} {
+  cfg_data slice_1/dout
+  aclk /pll_0/clk_out1
+}
 
-  # Create axis_constant
-  cell pavel-demin:user:axis_constant phase_$i {
-    AXIS_TDATA_WIDTH 32
-  } {
-    cfg_data slice_[expr $i + 1]/dout
-    aclk /pll_0/clk_out1
-  }
-
-  # Create dds_compiler
-  cell xilinx.com:ip:dds_compiler dds_$i {
-    DDS_CLOCK_RATE 122.88
-    SPURIOUS_FREE_DYNAMIC_RANGE 138
-    FREQUENCY_RESOLUTION 0.2
-    PHASE_INCREMENT Streaming
-    HAS_PHASE_OUT false
-    PHASE_WIDTH 30
-    OUTPUT_WIDTH 24
-    DSP48_USE Minimal
-    NEGATIVE_SINE true
-  } {
-    S_AXIS_PHASE phase_$i/M_AXIS
-    aclk /pll_0/clk_out1
-  }
-
+# Create dds_compiler
+cell xilinx.com:ip:dds_compiler dds_0 {
+  DDS_CLOCK_RATE 122.88
+  SPURIOUS_FREE_DYNAMIC_RANGE 138
+  FREQUENCY_RESOLUTION 0.2
+  PHASE_INCREMENT Streaming
+  HAS_PHASE_OUT false
+  PHASE_WIDTH 30
+  OUTPUT_WIDTH 24
+  DSP48_USE Minimal
+  NEGATIVE_SINE true
+} {
+  S_AXIS_PHASE phase_0/M_AXIS
+  aclk /pll_0/clk_out1
 }
 
 # Create axis_lfsr
@@ -45,7 +41,7 @@ cell pavel-demin:user:axis_lfsr lfsr_0 {} {
 # Create xlconstant
 cell xilinx.com:ip:xlconstant const_0
 
-for {set i 0} {$i <= 3} {incr i} {
+for {set i 0} {$i <= 1} {incr i} {
 
   # Create port_slicer
   cell pavel-demin:user:port_slicer adc_slice_$i {
@@ -107,8 +103,6 @@ cell  xilinx.com:ip:axis_combiner comb_0 {
 } {
   S00_AXIS cic_0/M_AXIS_DATA
   S01_AXIS cic_1/M_AXIS_DATA
-  S02_AXIS cic_2/M_AXIS_DATA
-  S03_AXIS cic_3/M_AXIS_DATA
   aclk /pll_0/clk_out1
   aresetn /rst_0/peripheral_aresetn
 }
@@ -204,40 +198,36 @@ cell xilinx.com:ip:axis_broadcaster bcast_0 {
   aresetn /rst_0/peripheral_aresetn
 }
 
-for {set i 0} {$i <= 1} {incr i} {
+# Create fifo_generator
+cell xilinx.com:ip:fifo_generator fifo_generator_0 {
+  PERFORMANCE_OPTIONS First_Word_Fall_Through
+  INPUT_DATA_WIDTH 64
+  INPUT_DEPTH 512
+  OUTPUT_DATA_WIDTH 32
+  OUTPUT_DEPTH 1024
+  READ_DATA_COUNT true
+  READ_DATA_COUNT_WIDTH 11
+} {
+  clk /pll_0/clk_out1
+  srst slice_0/dout
+}
 
-  # Create fifo_generator
-  cell xilinx.com:ip:fifo_generator fifo_generator_$i {
-    PERFORMANCE_OPTIONS First_Word_Fall_Through
-    INPUT_DATA_WIDTH 64
-    INPUT_DEPTH 512
-    OUTPUT_DATA_WIDTH 32
-    OUTPUT_DEPTH 1024
-    READ_DATA_COUNT true
-    READ_DATA_COUNT_WIDTH 11
-  } {
-    clk /pll_0/clk_out1
-    srst slice_0/dout
-  }
+# Create axis_fifo
+cell pavel-demin:user:axis_fifo fifo_0 {
+  S_AXIS_TDATA_WIDTH 64
+  M_AXIS_TDATA_WIDTH 32
+} {
+  S_AXIS bcast_0/M00_AXIS
+  FIFO_READ fifo_generator_0/FIFO_READ
+  FIFO_WRITE fifo_generator_0/FIFO_WRITE
+  aclk /pll_0/clk_out1
+}
 
-  # Create axis_fifo
-  cell pavel-demin:user:axis_fifo fifo_$i {
-    S_AXIS_TDATA_WIDTH 64
-    M_AXIS_TDATA_WIDTH 32
-  } {
-    S_AXIS bcast_0/M0${i}_AXIS
-    FIFO_READ fifo_generator_$i/FIFO_READ
-    FIFO_WRITE fifo_generator_$i/FIFO_WRITE
-    aclk /pll_0/clk_out1
-  }
-
-  # Create axi_axis_reader
-  cell pavel-demin:user:axi_axis_reader reader_$i {
-    AXI_DATA_WIDTH 32
-  } {
-    S_AXIS fifo_$i/M_AXIS
-    aclk /pll_0/clk_out1
-    aresetn /rst_0/peripheral_aresetn
-  }
-
+# Create axi_axis_reader
+cell pavel-demin:user:axi_axis_reader reader_0 {
+  AXI_DATA_WIDTH 32
+} {
+  S_AXIS fifo_0/M_AXIS
+  aclk /pll_0/clk_out1
+  aresetn /rst_0/peripheral_aresetn
 }
