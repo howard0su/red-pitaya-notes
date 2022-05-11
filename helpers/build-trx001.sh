@@ -4,9 +4,9 @@ JOBS=`nproc 2> /dev/null || echo 1`
 
 make -j $JOBS cores
 
-make NAME=led_blinker_122_88 all
+make NAME=sdr_transceiver_emb_122_88 all
 
-PRJS="sdr_transceiver_emb_122_88 sdr_transceiver_ft8_122_88 sdr_transceiver_hpsdr_122_88"
+PRJS="sdr_transceiver_ft8_122_88 sdr_transceiver_hpsdr_122_88"
 
 printf "%s\n" $PRJS | xargs -n 1 -P $JOBS -I {} make NAME={} bit
 
@@ -79,6 +79,8 @@ mksquashfs alpine-modloop/lib modloop -b 1048576 -comp xz -Xdict-size 100%
 
 rm -rf alpine-uboot alpine-initramfs initrd.gz alpine-modloop
 
+sudo update-binfmts --enable
+
 root_dir=alpine-root
 
 mkdir -p $root_dir/usr/bin
@@ -94,7 +96,7 @@ ln -s /media/mmcblk0p1/cache $root_dir/etc/apk/cache
 cp -r alpine/etc $root_dir/
 cp -r alpine/apps $root_dir/media/mmcblk0p1/
 
-for project in led_blinker_122_88 sdr_transceiver_emb_122_88 sdr_transceiver_ft8_122_88 sdr_transceiver_hpsdr_122_88
+for project in sdr_transceiver_emb_122_88 sdr_transceiver_ft8_122_88 sdr_transceiver_hpsdr_122_88
 do
   mkdir -p $root_dir/media/mmcblk0p1/apps/$project
   cp -r projects/$project/server/* $root_dir/media/mmcblk0p1/apps/$project/
@@ -212,8 +214,8 @@ cp -r alpine/wifi .
 
 hostname -F /etc/hostname
 
-rm -rf $root_dir alpine-apk
+#rm -rf $root_dir alpine-apk
 
-zip -r tianma-alpine-3.15-armv7-`date +%Y%m%d`.zip apps boot.bin cache devicetree.dtb modloop red-pitaya.apkovl.tar.gz uEnv.txt uImage uInitrd wifi
+zip -r trx001-alpine-3.15-armv7-`date +%Y%m%d`.zip apps boot.bin cache devicetree.dtb modloop red-pitaya.apkovl.tar.gz uEnv.txt uImage uInitrd wifi
 
-rm -rf apps cache modloop red-pitaya.apkovl.tar.gz uInitrd wifi
+#rm -rf apps cache modloop red-pitaya.apkovl.tar.gz uInitrd wifi
