@@ -214,8 +214,8 @@ cp -r alpine/wifi .
 
 hostname -F /etc/hostname
 
-#rm -rf $root_dir alpine-apk
+rm -rf $root_dir alpine-apk
 
 zip -r trx001-alpine-3.15-armv7-`date +%Y%m%d`.zip apps boot.bin cache devicetree.dtb modloop red-pitaya.apkovl.tar.gz uEnv.txt uImage uInitrd wifi
 
-#rm -rf apps cache modloop red-pitaya.apkovl.tar.gz uInitrd wifi
+rm -rf apps cache modloop red-pitaya.apkovl.tar.gz uInitrd wifi
