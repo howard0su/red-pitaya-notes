@@ -94,13 +94,10 @@ mkdir -p $root_dir/media/mmcblk0p1/cache
 ln -s /media/mmcblk0p1/cache $root_dir/etc/apk/cache
 
 cp -r alpine/etc $root_dir/
-cp -r alpine/apps $root_dir/media/mmcblk0p1/
 
 for project in sdr_transceiver_emb_122_88 sdr_transceiver_ft8_122_88 sdr_transceiver_hpsdr_122_88
 do
   mkdir -p $root_dir/media/mmcblk0p1/apps/$project
-  cp -r projects/$project/server/* $root_dir/media/mmcblk0p1/apps/$project/
-  cp -r projects/$project/app/* $root_dir/media/mmcblk0p1/apps/$project/
   cp tmp/$project.bit $root_dir/media/mmcblk0p1/apps/$project/
 done
 
@@ -114,8 +111,7 @@ echo $alpine_url/community >> $root_dir/etc/apk/repositories
 sudo chroot $root_dir /bin/sh <<- EOF_CHROOT
 
 apk update
-apk add openssh ucspi-tcp6 iw wpa_supplicant dhcpcd dnsmasq hostapd iptables avahi dbus dcron chrony gpsd libgfortran musl-dev fftw-dev libconfig-dev alsa-lib-dev alsa-utils curl wget less nano bc dos2unix
-
+apk add openssh ucspi-tcp6 iw wpa_supplicant dhcpcd dnsmasq hostapd iptables avahi dbus dcron chrony gpsd alsa-utils
 rc-update add bootmisc boot
 rc-update add hostname boot
 rc-update add hwdrivers boot
@@ -176,33 +172,6 @@ lbu delete root/.ash_history
 
 lbu commit -d
 
-apk add patch make gcc gfortran
-
-wdsp_dir=/media/mmcblk0p1/apps/wdsp
-wdsp_tar=/media/mmcblk0p1/apps/wdsp.tar.gz
-wdsp_url=https://github.com/pavel-demin/wdsp/archive/master.tar.gz
-
-curl -L \$wdsp_url -o \$wdsp_tar
-mkdir -p \$wdsp_dir
-tar -zxf \$wdsp_tar --strip-components=1 --directory=\$wdsp_dir
-rm \$wdsp_tar
-make -C \$wdsp_dir
-
-ft8d_dir=/media/mmcblk0p1/apps/ft8d
-ft8d_tar=/media/mmcblk0p1/apps/ft8d.tar.gz
-ft8d_url=https://github.com/pavel-demin/ft8d/archive/master.tar.gz
-
-curl -L \$ft8d_url -o \$ft8d_tar
-mkdir -p \$ft8d_dir
-tar -zxf \$ft8d_tar --strip-components=1 --directory=\$ft8d_dir
-rm \$ft8d_tar
-make -C \$ft8d_dir
-
-for project in sdr_transceiver_emb_122_88 sdr_transceiver_ft8_122_88 sdr_transceiver_hpsdr_122_88
-do
-  make -C /media/mmcblk0p1/apps/\$project clean
-  make -C /media/mmcblk0p1/apps/\$project
-done
 
 EOF_CHROOT
 
@@ -214,8 +183,8 @@ cp -r alpine/wifi .
 
 hostname -F /etc/hostname
 
-rm -rf $root_dir alpine-apk
+sudo rm -rf $root_dir alpine-apk
 
 zip -r trx001-alpine-3.15-armv7-`date +%Y%m%d`.zip apps boot.bin cache devicetree.dtb modloop red-pitaya.apkovl.tar.gz uEnv.txt uImage uInitrd wifi
 
-rm -rf apps cache modloop red-pitaya.apkovl.tar.gz uInitrd wifi
+sudo rm -rf apps cache modloop red-pitaya.apkovl.tar.gz uInitrd wifi
