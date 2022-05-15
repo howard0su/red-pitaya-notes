@@ -156,7 +156,7 @@ tmp/%.tree/system-top.dts: tmp/%.xsa $(DTREE_DIR)
 	mkdir -p $(@D)
 	$(XSCT) scripts/devicetree.tcl $* $(PROC) $(DTREE_DIR)
 	sed -i 's|#include|/include/|' $@
-	patch -d $(@D) < patches/devicetree.patch
+	patch -b -d $(@D) < patches/devicetree.patch
 
 clean:
 	$(RM) uImage boot.bin devicetree.dtb tmp

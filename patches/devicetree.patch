@@ -1,34 +1,54 @@
-diff -rupN pcw.dtsi.old pcw.dtsi
---- pcw.dtsi.old
-+++ pcw.dtsi
-@@ -26,6 +26,14 @@
+--- pcw.dtsi.orig	2022-05-15 00:05:03.993331200 +0800
++++ pcw.dtsi	2022-05-15 11:57:47.262810200 +0800
+@@ -25,6 +25,25 @@
+ &i2c0 {
  	clock-frequency = <400000>;
  	status = "okay";
- };
-+&i2c0 {
++
 +	eeprom@50 {
 +		compatible = "24c64";
 + 		size = <8192>;
 + 		pagesize = <32>;
 +		reg = <0x50>;
 +	};
-+};
++	wm8731@1a {
++		compatible = "wlf,wm8731";
++		reg = <0x1a>;
++	};
++	touchscreen@38 {
++		compatible = "edt,edt-ft5406";
++		reg = <0x38>;
++
++		wakeup-gpios = <&gpio0 9 0>;
++		interrupt-parent = <&gpio0>;
++		interrupts = <9 0>;
++	};
+ };
  &intc {
  	num_cpus = <2>;
- 	num_interrupts = <96>;
-@@ -45,6 +51,11 @@
+@@ -45,6 +64,21 @@
  	is-decoded-cs = <0>;
  	num-cs = <1>;
  	status = "okay";
-+	spidev@0 {
-+		compatible = "spidev";
-+		reg = <0x0>;
-+		spi-max-frequency = <10000000>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_spi1_tft>;
++
++	rpidisplay: rpi-display@0 {
++		compatible = "eastrising,er-tft035-6";
++		reg = <0>;
++
++		spi-max-frequency = <32000000>;
++		rotate = <0>;
++		buswidth = <8>;
++		reset-gpios = <&gpio0 51 0>;
++		dc-gpios = <&gpio0 8 0>;
++		debug = <0>;
 +	};
  };
  &uart0 {
  	cts-override ;
-@@ -59,11 +70,33 @@
+@@ -59,11 +93,81 @@
  	status = "okay";
  };
  &usb0 {
@@ -64,9 +84,56 @@ diff -rupN pcw.dtsi.old pcw.dtsi
 +		};
 +	};
 +};
-diff -rupN system-top.dts.old system-top.dts
---- system-top.dts.old
-+++ system-top.dts
++/*
++ * TFT controller pinctrl device tree
++ */
++
++&pinctrl0 {
++	pinctrl_spi1_tft: spi1_tft {
++        // SPI1 for TFT and touch
++        // SPI1_MOSI - MIO[10]
++        // SPI1_MISO - MIO[11]
++        // SPI1_SCLK - MIO[12]
++        // SPI1_SSn0 - MIO[13]
++        // SPI1_SSN1 - MIO[50]
++		mux_spi {
++			function = "spi1";
++			groups = "spi1_0_grp";
++		};
++        mux_ss {
++			function = "spi1_ss";
++			groups   = "spi1_0_ss0_grp";
++        };
++		conf_spi {
++			pins = "MIO10", "MIO11", "MIO12";
++			slew-rate = <1>;
++			bias-disable;
++			io-standard = <3>;  // LVCMOS33
++		};
++		conf_ss {
++			pins = "MIO50";
++			slew-rate = <0>;
++			bias-pull-up;
++			io-standard = <3>;  // LVCMOS25
++		};
++		// TFT D/C (data/control)
++		mux_tft_dc {
++			function = "gpio0";
++			groups = "gpio0_8_grp";
++		};
++		conf_tft_dc {
++			pins = "MIO8";
++			bias-disable;
++			slew-rate = <0>;
++			io-standard = <3>;  // LVCMOS33
++		};
++	};
++};
++&spi1 {
++
++};
+--- system-top.dts.orig	2022-05-15 00:05:07.083331200 +0800
++++ system-top.dts	2022-05-15 00:07:12.223331200 +0800
 @@ -14,6 +14,18 @@
  		bootargs = "console=ttyPS0,115200 earlyprintk earlycon";
  		stdout-path = "serial0:115200n8";
@@ -86,3 +153,23 @@ diff -rupN system-top.dts.old system-top.dts
  	aliases {
  		ethernet0 = &gem0;
  		i2c0 = &i2c0;
+@@ -26,4 +38,19 @@
+ 		device_type = "memory";
+ 		reg = <0x0 0x20000000>;
+ 	};
++	led-system {
++		compatible = "gpio-leds";
++		led-8-yellow {
++			label = "led8";
++			gpios = <&gpio0 0 0>;
++			default-state = "off";
++			linux,default-trigger = "mmc0";
++		};
++		led-9-red {
++			label = "led9";
++			gpios = <&gpio0 7 0>;
++			default-state = "off";
++			linux,default-trigger = "heartbeat";
++		};
++	};
+ };
