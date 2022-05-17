@@ -39,7 +39,7 @@
 +		reg = <0>;
 +
 +		spi-max-frequency = <32000000>;
-+		rotate = <0>;
++		rotation = <90>;
 +		buswidth = <8>;
 +		reset-gpios = <&gpio0 51 0>;
 +		dc-gpios = <&gpio0 8 0>;
