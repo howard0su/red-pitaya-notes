@@ -102,7 +102,7 @@ cell pavel-demin:user:port_slicer cfg_slice_0 {
 }
 
 module rx_0 {
-  source projects/sdr_transceiver_ft8/rx.tcl
+  source projects/sdr_receiver_kiwi/rx.tcl
 } {
   slice_0/din rst_slice_0/dout
   slice_1/din cfg_slice_0/dout
