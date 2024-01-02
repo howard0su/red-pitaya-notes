@@ -37,12 +37,12 @@ for {set i 0} {$i <= 3} {incr i} {
   # Create dds_compiler
   cell xilinx.com:ip:dds_compiler dds_$i {
     DDS_CLOCK_RATE 125
-    SPURIOUS_FREE_DYNAMIC_RANGE 138
-    FREQUENCY_RESOLUTION 0.2
+    SPURIOUS_FREE_DYNAMIC_RANGE 120
+    FREQUENCY_RESOLUTION 1
     PHASE_INCREMENT Streaming
     HAS_PHASE_OUT false
-    PHASE_WIDTH 30
-    OUTPUT_WIDTH 24
+    PHASE_WIDTH 23
+    OUTPUT_WIDTH 16
     DSP48_USE Minimal
     NEGATIVE_SINE true
   } {
@@ -63,16 +63,16 @@ for {set i 0} {$i <= 7} {incr i} {
 
   # Create port_slicer
   cell pavel-demin:user:port_slicer dds_slice_$i {
-    DIN_WIDTH 48 DIN_FROM [expr 24 * ($i % 2) + 23] DIN_TO [expr 24 * ($i % 2)]
+    DIN_WIDTH 32 DIN_FROM [expr 16 * ($i % 2) + 15] DIN_TO [expr 16 * ($i % 2)]
   } {
     din dds_[expr $i / 2]/m_axis_data_tdata
   }
 
   # Create dsp48
   cell pavel-demin:user:dsp48 mult_$i {
-    A_WIDTH 24
+    A_WIDTH 16
     B_WIDTH 14
-    P_WIDTH 24
+    P_WIDTH 16
   } {
     A dds_slice_$i/dout
     B selector_[expr $i / 2]/dout
@@ -90,9 +90,9 @@ for {set i 0} {$i <= 7} {incr i} {
     FIXED_OR_INITIAL_RATE 500
     INPUT_SAMPLE_FREQUENCY 125
     CLOCK_FREQUENCY 125
-    INPUT_DATA_WIDTH 24
+    INPUT_DATA_WIDTH 16
     QUANTIZATION Truncation
-    OUTPUT_DATA_WIDTH 32
+    OUTPUT_DATA_WIDTH 16
     USE_XTREME_DSP_SLICE false
     HAS_ARESETN true
   } {
@@ -109,7 +109,7 @@ for {set i 0} {$i <= 3} {incr i} {
   # Create axis_combiner
   cell  xilinx.com:ip:axis_combiner comb_$i {
     TDATA_NUM_BYTES.VALUE_SRC USER
-    TDATA_NUM_BYTES 4
+    TDATA_NUM_BYTES 2
     NUM_SI 2
   } {
     S00_AXIS cic_[expr $i * 2]/M_AXIS_DATA
@@ -118,38 +118,15 @@ for {set i 0} {$i <= 3} {incr i} {
     aresetn /rst_0/peripheral_aresetn
   }
 
-  # Create axis_dwidth_converter
-  cell xilinx.com:ip:axis_dwidth_converter conv_[expr $i * 2] {
-    S_TDATA_NUM_BYTES.VALUE_SRC USER
-    S_TDATA_NUM_BYTES 8
-    M_TDATA_NUM_BYTES 4
-  } {
-    S_AXIS comb_$i/M_AXIS
-    aclk /pll_0/clk_out1
-    aresetn /rst_0/peripheral_aresetn
-  }
-
   # Create axis_fifo
   cell pavel-demin:user:axis_fifo fifo_$i {
-    S_AXIS_TDATA_WIDTH 64
-    M_AXIS_TDATA_WIDTH 64
+    S_AXIS_TDATA_WIDTH 32
+    M_AXIS_TDATA_WIDTH 32
     WRITE_DEPTH 1024
     ALWAYS_READY TRUE
   } {
-    S_AXIS conv_[expr $i * 2]/M_AXIS
+    S_AXIS comb_$i/M_AXIS
     aclk /pll_0/clk_out1
     aresetn slice_0/dout
   }
-
-  # Create axis_dwidth_converter
-  cell xilinx.com:ip:axis_dwidth_converter conv_[expr $i * 2 + 1] {
-    S_TDATA_NUM_BYTES.VALUE_SRC USER
-    S_TDATA_NUM_BYTES 8
-    M_TDATA_NUM_BYTES 4
-  } {
-    S_AXIS fifo_$i/M_AXIS
-    aclk /pll_0/clk_out1
-    aresetn slice_0/dout
-  }
-
 }

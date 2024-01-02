@@ -128,10 +128,10 @@ module wf_0 {
   slice_3/din cfg_slice_1/dout
   slice_4/din cfg_slice_1/dout
 
-  conv_1/M_AXIS hub_0/S01_AXIS
-  conv_3/M_AXIS hub_0/S02_AXIS
-  conv_5/M_AXIS hub_0/S03_AXIS
-  conv_7/M_AXIS hub_0/S04_AXIS
+  fifo_0/M_AXIS hub_0/S01_AXIS
+  fifo_1/M_AXIS hub_0/S02_AXIS
+  fifo_2/M_AXIS hub_0/S03_AXIS
+  fifo_3/M_AXIS hub_0/S04_AXIS
 }
 
 # Create xlconcat
