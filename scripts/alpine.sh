@@ -1,4 +1,4 @@
-alpine_url=http://dl-cdn.alpinelinux.org/alpine/v3.18
+alpine_url=http://mirrors.tuna.tsinghua.edu.cn/alpine/v3.18
 
 tools_tar=apk-tools-static-2.14.0-r2.apk
 tools_url=$alpine_url/main/armv7/$tools_tar
