@@ -96,14 +96,6 @@ module rx_0 {
   slice_6/din cfg_slice_0/dout
   slice_7/din cfg_slice_0/dout
   slice_8/din cfg_slice_0/dout
-  slice_9/din cfg_slice_0/dout
-  slice_10/din cfg_slice_0/dout
-  slice_11/din cfg_slice_0/dout
-  slice_12/din cfg_slice_0/dout
-  slice_13/din cfg_slice_0/dout
-  slice_14/din cfg_slice_0/dout
-  slice_15/din cfg_slice_0/dout
-  slice_16/din cfg_slice_0/dout
   fifo_0/read_count hub_0/sts_data
   conv_2/M_AXIS hub_0/S00_AXIS
 }
