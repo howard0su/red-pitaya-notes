@@ -60,11 +60,9 @@ ln -s /media/mmcblk0p1/cache $root_dir/etc/apk/cache
 cp -r alpine/etc $root_dir/
 cp -r alpine/apps $root_dir/media/mmcblk0p1/
 
-projects="common_tools led_blinker mcpha playground pulsed_nmr sdr_receiver sdr_receiver_hpsdr sdr_receiver_wide sdr_transceiver sdr_transceiver_ft8 sdr_transceiver_hpsdr sdr_transceiver_wide sdr_transceiver_wspr vna"
+projects="sdr_receiver_kiwi"
 
-projects_122_88="led_blinker_122_88 pulsed_nmr_122_88 sdr_receiver_122_88 sdr_receiver_hpsdr_122_88 sdr_receiver_wide_122_88 sdr_transceiver_122_88 sdr_transceiver_ft8_122_88 sdr_transceiver_hpsdr_122_88 sdr_transceiver_wspr_122_88 vna_122_88"
-
-for p in $projects $projects_122_88
+for p in $projects
 do
   mkdir -p $root_dir/media/mmcblk0p1/apps/$p
   cp -r projects/$p/server/* $root_dir/media/mmcblk0p1/apps/$p/
@@ -82,7 +80,7 @@ echo $alpine_url/community >> $root_dir/etc/apk/repositories
 chroot $root_dir /bin/sh <<- EOF_CHROOT
 
 apk update
-apk add openssh u-boot-tools ucspi-tcp6 iw wpa_supplicant dhcpcd dnsmasq hostapd iptables avahi dbus dcron chrony gpsd libgfortran musl-dev libconfig-dev alsa-lib-dev alsa-utils curl wget less nano bc dos2unix
+apk add openssh u-boot-tools ucspi-tcp6 iw wpa_supplicant dhcpcd dnsmasq hostapd iptables avahi dbus dcron chrony gpsd nano zlib libsndfile fftw-single-libs fdk-aac
 
 rc-update add bootmisc boot
 rc-update add hostname boot
@@ -135,41 +133,9 @@ ln -s /media/mmcblk0p1/wifi root/wifi
 
 lbu add root
 lbu delete etc/resolv.conf
-lbu delete etc/cron.d/ft8
-lbu delete etc/cron.d/ft8_122_88
-lbu delete etc/cron.d/wspr
-lbu delete etc/cron.d/wspr_122_88
 lbu delete root/.ash_history
 
 lbu commit -d
-
-apk add make gcc gfortran
-
-ft8d_dir=/media/mmcblk0p1/apps/ft8d
-ft8d_tar=/media/mmcblk0p1/apps/ft8d.tar.gz
-ft8d_url=https://github.com/pavel-demin/ft8d/archive/master.tar.gz
-
-curl -L \$ft8d_url -o \$ft8d_tar
-mkdir -p \$ft8d_dir
-tar -zxf \$ft8d_tar --strip-components=1 --directory=\$ft8d_dir
-rm \$ft8d_tar
-make -C \$ft8d_dir
-
-wsprd_dir=/media/mmcblk0p1/apps/wsprd
-wsprd_tar=/media/mmcblk0p1/apps/wsprd.tar.gz
-wsprd_url=https://github.com/pavel-demin/wsprd/archive/master.tar.gz
-
-curl -L \$wsprd_url -o \$wsprd_tar
-mkdir -p \$wsprd_dir
-tar -zxf \$wsprd_tar --strip-components=1 --directory=\$wsprd_dir
-rm \$wsprd_tar
-make -C \$wsprd_dir
-
-for p in server $projects $projects_122_88
-do
-  make -C /media/mmcblk0p1/apps/\$p clean
-  make -C /media/mmcblk0p1/apps/\$p
-done
 
 EOF_CHROOT
 
