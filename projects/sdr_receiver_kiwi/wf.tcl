@@ -1,12 +1,13 @@
 # Create xlconstant
 cell xilinx.com:ip:xlconstant const_0
 
-# Create port_slicer, share reset bit with RX
-cell pavel-demin:user:port_slicer slice_0 {
-  DIN_WIDTH 8 DIN_FROM 0 DIN_TO 0
-}
-
 for {set i 0} {$i <= 3} {incr i} {
+
+  # Create port_slicer, share reset bit with RX
+  cell pavel-demin:user:port_slicer rst_slice_$i {
+    DIN_WIDTH 8 DIN_FROM $i + 1 DIN_TO $i + 1
+  }
+
 
   # Create port_selector
   cell pavel-demin:user:port_selector selector_$i {
@@ -127,6 +128,6 @@ for {set i 0} {$i <= 3} {incr i} {
   } {
     S_AXIS comb_$i/M_AXIS
     aclk /pll_0/clk_out1
-    aresetn slice_0/dout
+    aresetn rst_slice_$i/dout
   }
 }

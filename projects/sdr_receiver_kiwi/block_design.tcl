@@ -122,7 +122,11 @@ cell pavel-demin:user:port_slicer cfg_slice_1 {
 module wf_0 {
   source projects/sdr_receiver_kiwi/wf.tcl
 } {
-  slice_0/din rst_slice_0/dout
+  rst_slice_0/din rst_slice_0/dout
+  rst_slice_1/din rst_slice_0/dout
+  rst_slice_2/din rst_slice_0/dout
+  rst_slice_3/din rst_slice_0/dout
+
   slice_1/din cfg_slice_1/dout
   slice_2/din cfg_slice_1/dout
   slice_3/din cfg_slice_1/dout
