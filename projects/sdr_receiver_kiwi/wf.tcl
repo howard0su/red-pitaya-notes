@@ -41,7 +41,7 @@ for {set i 0} {$i <= 3} {incr i} {
     FREQUENCY_RESOLUTION 1
     PHASE_INCREMENT Streaming
     HAS_PHASE_OUT false
-    OUTPUT_WIDTH 24
+    OUTPUT_WIDTH 16
     DSP48_USE Minimal
     NEGATIVE_SINE true
   } {
@@ -62,7 +62,7 @@ for {set i 0} {$i <= 7} {incr i} {
 
   # Create port_slicer
   cell pavel-demin:user:port_slicer dds_slice_$i {
-    DIN_WIDTH 48 DIN_FROM [expr 24 * ($i % 2) + 15] DIN_TO [expr 24 * ($i % 2)]
+    DIN_WIDTH 32 DIN_FROM [expr 16 * ($i % 2) + 15] DIN_TO [expr 16 * ($i % 2)]
   } {
     din dds_[expr $i / 2]/m_axis_data_tdata
   }
