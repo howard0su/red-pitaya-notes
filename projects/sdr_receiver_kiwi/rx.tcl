@@ -2,7 +2,7 @@
 cell xilinx.com:ip:xlconstant const_0
 
 # Create port_slicer
-cell pavel-demin:user:port_slicer slice_0 {
+cell pavel-demin:user:port_slicer rst_slice_0 {
   DIN_WIDTH 8 DIN_FROM 0 DIN_TO 0
 }
 
@@ -32,7 +32,7 @@ cell pavel-demin:user:port_slicer slice_0 {
   # Create dds_compiler
   cell xilinx.com:ip:dds_compiler dds_$i {
     DDS_CLOCK_RATE 125
-    SPURIOUS_FREE_DYNAMIC_RANGE 138
+    SPURIOUS_FREE_DYNAMIC_RANGE 120
     FREQUENCY_RESOLUTION 0.2
     PHASE_INCREMENT Streaming
     HAS_PHASE_OUT false
@@ -50,15 +50,15 @@ for {set i 0} {$i <= 15} {incr i} {
 
   # Create port_slicer
   cell pavel-demin:user:port_slicer dds_slice_$i {
-    DIN_WIDTH 48 DIN_FROM [expr 24 * ($i % 2) + 23] DIN_TO [expr 24 * ($i % 2)]
+    DIN_WIDTH 48 DIN_FROM [expr 24 * ($i % 2) + 20] DIN_TO [expr 24 * ($i % 2)]
   } {
     din dds_[expr $i / 2]/m_axis_data_tdata
   }
 
   # Create dsp48
   cell pavel-demin:user:dsp48 mult_$i {
-    A_WIDTH 24
-    B_WIDTH 14
+    A_WIDTH 21
+    B_WIDTH 16
     P_WIDTH 24
   } {
     A dds_slice_$i/dout
@@ -134,7 +134,7 @@ cell xilinx.com:ip:cic_compiler cic_16 {
   NUMBER_OF_STAGES 5
   SAMPLE_RATE_CHANGES Fixed
   FIXED_OR_INITIAL_RATE 11
-  INPUT_SAMPLE_FREQUENCY 1
+  INPUT_SAMPLE_FREQUENCY 0.131995776135164
   CLOCK_FREQUENCY 125
   NUMBER_OF_CHANNELS 16
   INPUT_DATA_WIDTH 32
@@ -164,12 +164,12 @@ cell xilinx.com:ip:axis_dwidth_converter conv_1 {
 cell pavel-demin:user:axis_fifo fifo_0 {
   S_AXIS_TDATA_WIDTH 512
   M_AXIS_TDATA_WIDTH 512
-  WRITE_DEPTH 1024
+  WRITE_DEPTH 2048
   ALWAYS_READY TRUE
 } {
   S_AXIS conv_1/M_AXIS
   aclk /pll_0/clk_out1
-  aresetn slice_0/dout
+  aresetn rst_slice_0/dout
 }
 
 # Create axis_dwidth_converter
@@ -180,5 +180,5 @@ cell xilinx.com:ip:axis_dwidth_converter conv_2 {
 } {
   S_AXIS fifo_0/M_AXIS
   aclk /pll_0/clk_out1
-  aresetn slice_0/dout
+  aresetn rst_slice_0/dout
 }

@@ -8,10 +8,6 @@ cell xilinx.com:ip:clk_wiz pll_0 {
   CLKOUT1_REQUESTED_OUT_FREQ 125.0
   CLKOUT2_USED false
   CLKOUT2_REQUESTED_OUT_FREQ 250.0
-  CLKOUT2_REQUESTED_PHASE 157.5
-  CLKOUT3_USED false
-  CLKOUT3_REQUESTED_OUT_FREQ 250.0
-  CLKOUT3_REQUESTED_PHASE 202.5
   USE_RESET false
 } {
   clk_in1_p adc_clk_p_i
@@ -82,14 +78,14 @@ cell pavel-demin:user:axi_hub hub_0 {
 # RX 0
 
 # Create port_slicer
-cell pavel-demin:user:port_slicer rst_slice_0 {
+cell pavel-demin:user:port_slicer rst_slice {
   DIN_WIDTH 544 DIN_FROM 7 DIN_TO 0
 } {
   din hub_0/cfg_data
 }
 
 # Create port_slicer
-cell pavel-demin:user:port_slicer cfg_slice_0 {
+cell pavel-demin:user:port_slicer cfg_slice_rx {
   DIN_WIDTH 544 DIN_FROM 287 DIN_TO 32
 } {
   din hub_0/cfg_data
@@ -98,23 +94,23 @@ cell pavel-demin:user:port_slicer cfg_slice_0 {
 module rx_0 {
   source projects/sdr_receiver_kiwi/rx.tcl
 } {
-  slice_0/din rst_slice_0/dout
-  slice_1/din cfg_slice_0/dout
-  slice_2/din cfg_slice_0/dout
-  slice_3/din cfg_slice_0/dout
-  slice_4/din cfg_slice_0/dout
-  slice_5/din cfg_slice_0/dout
-  slice_6/din cfg_slice_0/dout
-  slice_7/din cfg_slice_0/dout
-  slice_8/din cfg_slice_0/dout
+  rst_slice_0/din rst_slice/dout
+  slice_1/din cfg_slice_rx/dout
+  slice_2/din cfg_slice_rx/dout
+  slice_3/din cfg_slice_rx/dout
+  slice_4/din cfg_slice_rx/dout
+  slice_5/din cfg_slice_rx/dout
+  slice_6/din cfg_slice_rx/dout
+  slice_7/din cfg_slice_rx/dout
+  slice_8/din cfg_slice_rx/dout
   conv_2/M_AXIS hub_0/S00_AXIS
 }
 
 # Waterflow moduless
 
 # Create port_slicer
-cell pavel-demin:user:port_slicer cfg_slice_1 {
-  DIN_WIDTH 544 DIN_FROM 543 DIN_TO 287
+cell pavel-demin:user:port_slicer cfg_slice_wf {
+  DIN_WIDTH 544 DIN_FROM 543 DIN_TO 288
 } {
   din hub_0/cfg_data
 }
@@ -122,20 +118,24 @@ cell pavel-demin:user:port_slicer cfg_slice_1 {
 module wf_0 {
   source projects/sdr_receiver_kiwi/wf.tcl
 } {
-  rst_slice_0/din rst_slice_0/dout
-  rst_slice_1/din rst_slice_0/dout
-  rst_slice_2/din rst_slice_0/dout
-  rst_slice_3/din rst_slice_0/dout
+  rst_slice_0/din rst_slice/dout
+  rst_slice_1/din rst_slice/dout
+  rst_slice_2/din rst_slice/dout
+  rst_slice_3/din rst_slice/dout
 
-  slice_1/din cfg_slice_1/dout
-  slice_2/din cfg_slice_1/dout
-  slice_3/din cfg_slice_1/dout
-  slice_4/din cfg_slice_1/dout
+  slice_1/din cfg_slice_wf/dout
+  slice_2/din cfg_slice_wf/dout
+  slice_3/din cfg_slice_wf/dout
+  slice_4/din cfg_slice_wf/dout
+  slice_5/din cfg_slice_wf/dout
+  slice_6/din cfg_slice_wf/dout
+  slice_7/din cfg_slice_wf/dout
+  slice_8/din cfg_slice_wf/dout
 
-  fifo_0/M_AXIS hub_0/S01_AXIS
-  fifo_1/M_AXIS hub_0/S02_AXIS
-  fifo_2/M_AXIS hub_0/S03_AXIS
-  fifo_3/M_AXIS hub_0/S04_AXIS
+  conv_0/M_AXIS hub_0/S01_AXIS
+  conv_1/M_AXIS hub_0/S02_AXIS
+  conv_2/M_AXIS hub_0/S03_AXIS
+  conv_3/M_AXIS hub_0/S04_AXIS
 }
 
 # Create xlconcat
