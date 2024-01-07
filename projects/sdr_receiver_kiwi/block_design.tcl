@@ -64,12 +64,13 @@ cell pavel-demin:user:axis_red_pitaya_adc adc_0 {
 #   RX FIFO: 0 - 31, 32bits
 #   WF CHANNEL0-3: 32-159, 32bits * 4 = 128bits.
 #   PPS FIFO: 160-191, 32bits
-#  Total 192bits
+#   DNA: 192 - 255, 64bits
+#  Total 256bits
 
 # Create axi_hub
 cell pavel-demin:user:axi_hub hub_0 {
   CFG_DATA_WIDTH 544
-  STS_DATA_WIDTH 192
+  STS_DATA_WIDTH 256
 } {
   S_AXI ps_0/M_AXI_GP0
   aclk pll_0/clk_out1
@@ -183,15 +184,21 @@ cell pavel-demin:user:axis_fifo fifo_0 {
   aresetn rst_slice_pps/dout
 }
 
+cell pavel-demin:user:dna_reader dna_0 {} {
+  aclk /pll_0/clk_out1
+  aresetn rst_0/peripheral_aresetn
+}
+
 # Create xlconcat
 cell xilinx.com:ip:xlconcat concat_0 {
-  NUM_PORTS 6
+  NUM_PORTS 7
   IN0_WIDTH 32
   IN1_WIDTH 32
   IN2_WIDTH 32
   IN3_WIDTH 32
   IN4_WIDTH 32
   IN5_WIDTH 32
+  IN6_WIDTH 64
 } {
   In0 rx_0/fifo_0/read_count
   In1 wf_0/fifo_0/read_count
@@ -199,6 +206,7 @@ cell xilinx.com:ip:xlconcat concat_0 {
   In3 wf_0/fifo_2/read_count
   In4 wf_0/fifo_3/read_count
   In5 fifo_0/read_count
+  In6 dna_0/dna_data
 
   dout hub_0/sts_data
 }
