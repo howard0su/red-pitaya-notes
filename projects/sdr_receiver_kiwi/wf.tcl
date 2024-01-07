@@ -17,12 +17,12 @@ for {set i 0} {$i <= 3} {incr i} {
   }
 
   # Create port_slicer for phase
-  cell pavel-demin:user:port_slicer slice_[expr $i * 2 + 1] {
+  cell pavel-demin:user:port_slicer slice_[expr $i * 2] {
     DIN_WIDTH 256 DIN_FROM [expr 32 * $i + 31] DIN_TO [expr 32 * $i]
   }
 
   # Create port_slicer for cic
-  cell pavel-demin:user:port_slicer slice_[expr $i * 2 + 1 + 1] {
+  cell pavel-demin:user:port_slicer slice_[expr $i * 2 + 1] {
     DIN_WIDTH 256 DIN_FROM [expr 32 * $i + 63] DIN_TO [expr 32 * $i + 32]
   }
 
@@ -30,7 +30,7 @@ for {set i 0} {$i <= 3} {incr i} {
   cell pavel-demin:user:axis_constant phase_$i {
     AXIS_TDATA_WIDTH 32
   } {
-    cfg_data slice_[expr $i * 2 + 1]/dout
+    cfg_data slice_[expr $i * 2]/dout
     aclk /pll_0/clk_out1
   }
 
@@ -56,7 +56,7 @@ for {set i 0} {$i <= 7} {incr i} {
   cell pavel-demin:user:axis_constant rate_$i {
     AXIS_TDATA_WIDTH 16
   } {
-    cfg_data slice_[expr $i / 2 + 1]/dout
+    cfg_data slice_[expr ($i / 2) * 2 + 1]/dout
     aclk /pll_0/clk_out1
   }
 

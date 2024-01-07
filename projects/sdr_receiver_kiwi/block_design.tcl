@@ -56,19 +56,20 @@ cell pavel-demin:user:axis_red_pitaya_adc adc_0 {
 
 # Address Space arrangement
 # Write Width: (CFG)
-#   RESET: 0 -  31, 32bits -> reset
+#   RESET: 0 -  31, 32bits -> reset (bit 0 : rx, bit 1-4, wf, bit 8: pps)
 #   RX:  32  - 287, 256btis -> 8 channel freq （8*32)
 #   WF:  288 - 543 , 256bits -> 4 channel freq (4 * 32) + 4 channel cic step ( 4 * 32)
 #  Total 544 bits
 # Read Width: (STS)
 #   RX FIFO: 0 - 31, 32bits
 #   WF CHANNEL0-3: 32-159, 32bits * 4 = 128bits.
-#  Total 160bits
+#   PPS FIFO: 160-191, 32bits
+#  Total 192bits
 
 # Create axi_hub
 cell pavel-demin:user:axi_hub hub_0 {
   CFG_DATA_WIDTH 544
-  STS_DATA_WIDTH 160
+  STS_DATA_WIDTH 192
 } {
   S_AXI ps_0/M_AXI_GP0
   aclk pll_0/clk_out1
@@ -123,6 +124,7 @@ module wf_0 {
   rst_slice_2/din rst_slice/dout
   rst_slice_3/din rst_slice/dout
 
+  slice_0/din cfg_slice_wf/dout
   slice_1/din cfg_slice_wf/dout
   slice_2/din cfg_slice_wf/dout
   slice_3/din cfg_slice_wf/dout
@@ -130,7 +132,6 @@ module wf_0 {
   slice_5/din cfg_slice_wf/dout
   slice_6/din cfg_slice_wf/dout
   slice_7/din cfg_slice_wf/dout
-  slice_8/din cfg_slice_wf/dout
 
   conv_0/M_AXIS hub_0/S01_AXIS
   conv_1/M_AXIS hub_0/S02_AXIS
@@ -138,27 +139,66 @@ module wf_0 {
   conv_3/M_AXIS hub_0/S04_AXIS
 }
 
+
+# PPS
+cell pavel-demin:user:port_slicer rst_slice_pps {
+  DIN_WIDTH 544 DIN_FROM 8 DIN_TO 8
+} {
+  din hub_0/cfg_data
+}
+
+# Delete input/output port
+delete_bd_objs [get_bd_ports /exp_n_tri_io]
+
+# Create input port
+create_bd_port -dir I -from 3 -to 0 exp_n_tri_io
+
+# Create port_slicer
+cell pavel-demin:user:port_slicer pps_slice_0 {
+  DIN_WIDTH 4 DIN_FROM 3 DIN_TO 3
+} {
+  din /exp_n_tri_io
+  dout /ps_0/GPIO_I
+}
+
+# Create axis_pps_counter
+cell pavel-demin:user:axis_pps_counter cntr_0 {
+  AXIS_TDATA_WIDTH 32
+  CNTR_WIDTH 32
+} {
+  pps_data pps_slice_0/dout
+  aclk /pll_0/clk_out1
+  aresetn rst_slice_pps/dout
+}
+
+# Create axis_fifo
+cell pavel-demin:user:axis_fifo fifo_0 {
+  S_AXIS_TDATA_WIDTH 32
+  M_AXIS_TDATA_WIDTH 32
+  WRITE_DEPTH 1024
+} {
+  S_AXIS cntr_0/M_AXIS
+  M_AXIS hub_0/S05_AXIS
+  aclk /pll_0/clk_out1
+  aresetn rst_slice_pps/dout
+}
+
 # Create xlconcat
 cell xilinx.com:ip:xlconcat concat_0 {
-  NUM_PORTS 5
+  NUM_PORTS 6
   IN0_WIDTH 32
   IN1_WIDTH 32
   IN2_WIDTH 32
   IN3_WIDTH 32
   IN4_WIDTH 32
+  IN5_WIDTH 32
 } {
   In0 rx_0/fifo_0/read_count
   In1 wf_0/fifo_0/read_count
   In2 wf_0/fifo_1/read_count
   In3 wf_0/fifo_2/read_count
   In4 wf_0/fifo_3/read_count
+  In5 fifo_0/read_count
 
   dout hub_0/sts_data
-}
-
-
-# GPIO, PPS and level measurement
-
-module common_0 {
-  source projects/common_tools/block_design.tcl
 }
