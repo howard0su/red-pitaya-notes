@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -7,164 +9,189 @@
 #include <math.h>
 #include <time.h>
 #include <sys/mman.h>
-#include <libconfig.h>
+
+#include <inttypes.h>
+#include <math.h>
+#include <stdio.h>
+#include <time.h>
+
+#define RESET_RX (1 << 0)
+#define RESET_WF0 (1 << 1)
+#define RESET_WF1 (1 << 2)
+#define RESET_WF2 (1 << 3)
+#define RESET_WF3 (1 << 4)
+
+typedef struct
+{
+  uint32_t reset;
+  uint32_t rx_freq[8];
+  struct
+  {
+    uint32_t wf_freq;
+    uint32_t wf_decim;
+  } wf_config[4];
+}__attribute__((packed)) FPGA_Config;
+
+typedef struct
+{
+  uint32_t rx_fifo;
+  uint32_t wf_fifo[4];
+  uint32_t pps_fifo;
+  uint64_t fpga_dna;
+}__attribute__((packed)) FPGA_Status;
+
+typedef struct
+{
+  uint32_t rx_data;
+  uint32_t wf_data[4];
+}__attribute__((packed)) FPGA_Data;
+
+volatile FPGA_Config *fpga_config;
+volatile const FPGA_Status *fpga_status;
+volatile FPGA_Data *fpga_data;
+
+void print_current_time_with_ms(void)
+{
+  long ms;  // Milliseconds
+  time_t s; // Seconds
+  struct timespec spec;
+
+  clock_gettime(CLOCK_REALTIME, &spec);
+
+  s = spec.tv_sec;
+  ms = round(spec.tv_nsec / 1.0e6); // Convert nanoseconds to milliseconds
+  if (ms > 999)
+  {
+    s++;
+    ms = 0;
+  }
+
+  printf("Current time: %" PRIdMAX ".%03ld seconds since the Epoch\n",
+         (intmax_t)s, ms);
+}
+
+#define ADC_FREQ (125.0 * (1 << 30))
+#define MAKE_FREQ(freq, corr) ((uint32_t)floor((1.0 + 1.0e-6 * corr) * freq / ADC_FREQ + 0.5))
 
 int main(int argc, char *argv[])
 {
-  FILE *fp;
   int fd, offset, length, i, j;
   time_t t;
   struct tm *gmt;
-  volatile void *cfg, *sts;
-  volatile uint64_t *fifo;
-  volatile uint8_t *rst, *sel;
-  volatile uint16_t *cntr;
   uint64_t *buffer;
-  config_t config;
-  config_setting_t *setting, *element;
   char date[12];
   char name[64];
   double dialfreq;
-  double corr;
-  double freq[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  double corr = 0.0;
+  double freq[8] = {1000.0, 20000.0, 300000.0, 400000.0, 500000.0, 600000.0, 700000.0, 800000.0};
   int chan[8] = {1, 1, 1, 1, 1, 1, 1, 1};
   uint8_t value = 0;
 
-  if(argc != 2)
-  {
-    fprintf(stderr, "Usage: write-c2-files config_file.cfg\n");
-    return EXIT_FAILURE;
-  }
-
-  config_init(&config);
-
-  if(!config_read_file(&config, argv[1]))
-  {
-    fprintf(stderr, "Error on line %d in configuration file.\n", config_error_line(&config));
-    return EXIT_FAILURE;
-  }
-
-  if(!config_lookup_float(&config, "corr", &corr))
-  {
-    fprintf(stderr, "No 'corr' setting in configuration file.\n");
-    return EXIT_FAILURE;
-  }
-
-  if(corr < -100.0 || corr > 100.0)
-  {
-    fprintf(stderr, "Wrong 'corr' setting in configuration file.\n");
-    return EXIT_FAILURE;
-  }
-
-  setting = config_lookup(&config, "bands");
-  if(setting == NULL)
-  {
-    fprintf(stderr, "No 'bands' setting in configuration file.\n");
-    return EXIT_FAILURE;
-  }
-
-  length = config_setting_length(setting);
-
-  if(length > 8)
-  {
-    fprintf(stderr, "More than 8 bands in configuration file.\n");
-    return EXIT_FAILURE;
-  }
-
-  if(length < 1)
-  {
-    fprintf(stderr, "Less than 1 band in configuration file.\n");
-    return EXIT_FAILURE;
-  }
-
-  for(i = 0; i < length; ++i)
-  {
-    element = config_setting_get_elem(setting, i);
-
-    if(!config_setting_lookup_float(element, "freq", &freq[i]))
-    {
-      fprintf(stderr, "No 'freq' setting in element %d.\n", i);
-      return EXIT_FAILURE;
-    }
-
-    if(!config_setting_lookup_int(element, "chan", &chan[i]))
-    {
-      fprintf(stderr, "No 'chan' setting in element %d.\n", i);
-      return EXIT_FAILURE;
-    }
-
-    if(chan[i] < 1 || chan[i] > 2)
-    {
-      fprintf(stderr, "Wrong 'chan' setting in element %d.\n", i);
-      return EXIT_FAILURE;
-    }
-
-    value |= (chan[i] - 1) << i;
-  }
-
-  t = time(NULL);
-  if((gmt = gmtime(&t)) == NULL)
-  {
-    fprintf(stderr, "Cannot convert time.\n");
-    return EXIT_FAILURE;
-  }
-
-  if((fd = open("/dev/mem", O_RDWR)) < 0)
+  if ((fd = open("/dev/mem", O_RDWR)) < 0)
   {
     fprintf(stderr, "Cannot open /dev/mem.\n");
     return EXIT_FAILURE;
   }
 
-  cfg = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x40000000);
-  sts = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x41000000);
-  fifo = mmap(NULL, 16*sysconf(_SC_PAGESIZE), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0x42000000);
+  fpga_config = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0x40000000);
+  fpga_status = mmap(NULL, sysconf(_SC_PAGESIZE), PROT_READ, MAP_SHARED, fd, 0x41000000);
+  fpga_data = mmap(NULL, 32 * sysconf(_SC_PAGESIZE), PROT_READ, MAP_SHARED, fd, 0x42000000);
 
-  for(i = 0; i < 8; ++i)
+  fpga_config->reset = 0;
+  fpga_config->reset = 0xffff;
+
+  for (i = 0; i < 8; ++i)
   {
-    *(uint32_t *)(cfg + 8 + i * 4) = (uint32_t)floor((1.0 + 1.0e-6 * corr) * freq[i] / 125.0 * (1<<30) + 0.5);
+    fpga_config->rx_freq[i] = MAKE_FREQ(freq[i], corr);
   }
 
-  rst = (uint8_t *)(cfg + 0);
-  sel = (uint8_t *)(cfg + 4);
-  cntr = (uint16_t *)(sts + 0);
+  for (int i = 0; i < 4; i++)
+  {
+    fpga_config->wf_config[i].wf_freq = MAKE_FREQ(freq[i], corr);
+    fpga_config->wf_config[i].wf_decim = 1 << (i + 3);
+  }
 
-  *sel = value;
+  printf("DNA: %llx\n", fpga_status->fpga_dna);
+  printf("Count RX Addr&: %x\n", &fpga_status->rx_fifo);
+  printf("Count WF0 Addr&: %x\n", &fpga_status->wf_fifo[0]);
+  printf("Count WF1 Addr&: %x\n", &fpga_status->wf_fifo[1]);
+  printf("Count WF2 Addr&: %x\n", &fpga_status->wf_fifo[2]);
+  printf("Count WF3 Addr&: %x\n", &fpga_status->wf_fifo[3]);
 
-  *rst &= ~1;
-  *rst |= 1;
+  printf("RX\tWF0\tWF1\tWF2\tWF3\tPPS\n");
+  for (int i = 0; i < 1000; i++)
+  {
+    printf("%d\t%d\t%d\t%d\t%d\t%d\n", fpga_status->rx_fifo, fpga_status->wf_fifo[0], fpga_status->wf_fifo[1], fpga_status->wf_fifo[2], fpga_status->wf_fifo[3], fpga_status->pps_fifo);
+    sleep(1);
+  }
+
+  fpga_config->reset &= ~RESET_RX;
+  fpga_config->reset |= RESET_RX;
 
   offset = 0;
-  buffer = malloc(240000 * 8 * 8);
-  memset(buffer, 0, 240000 * 8 * 8);
 
-  while(offset < 236000)
+  struct timespec start_spec, stop_spec;
+
+  clock_gettime(CLOCK_REALTIME, &start_spec);
+
+
+  printf("DNA: %llx\n", fpga_status->fpga_dna);
+  printf("Count Addr&: %x\n", &fpga_status->rx_fifo);
+
+  while (offset < 24000)
   {
-    while(*cntr < 500) usleep(10000);
 
-    for(i = 0; i < 250; ++i)
+    while (fpga_status->rx_fifo < 500) {
+      //printf("Count: %d\n", fpga_status->rx_fifo);
+      usleep(1000);
+    }
+      
+
+    for (i = 0; i < 250; ++i)
     {
-      for(j = 0; j < 8; ++j)
+      for (j = 0; j < 8; ++j)
       {
-        buffer[j * 240000 + offset + i] = *fifo;
+        int data0 = fpga_data->rx_data;
+        int data1 = fpga_data->rx_data;        
       }
     }
 
     offset += 250;
+    // printf("%d\n", offset);
   }
 
-  for(i = 0; i < length; ++i)
+  clock_gettime(CLOCK_REALTIME, &stop_spec);
+
+  printf("RX: sample rate= %f (should close to 12,000, otherwise there is bug)\n", 24000.0 / (stop_spec.tv_sec - start_spec.tv_sec + (stop_spec.tv_nsec - start_spec.tv_nsec) * 1e-9));
+  printf("Count Addr&: %x\n", &fpga_status->wf_fifo[0]);
+
+  for (int i = 0; i < 1; i++)
   {
-    dialfreq = freq[i] * 1.0e6;
-    strftime(date, 12, "%y%m%d_%H%M", gmt);
-    sprintf(name, "ft8_%d_%d_%d_%s.c2", i, (uint32_t)dialfreq, chan[i], date);
-    if((fp = fopen(name, "wb")) == NULL)
+       // test each WF channels
+    fpga_config->reset &= ~(RESET_WF0 << i);
+    fpga_config->reset |= RESET_WF0 << i;
+
+    clock_gettime(CLOCK_REALTIME, &start_spec);
+    offset = 0;
+
+    while (offset < 24000)
     {
-      fprintf(stderr, "Cannot open output file %s.\n", name);
-      return EXIT_FAILURE;
+      while (fpga_status->wf_fifo[i] < 250) {
+        printf("Count: %d\n", fpga_status->wf_fifo[i]);
+        usleep(1000);
+      }
+ 
+      for (i = 0; i < 250; ++i)
+      {
+        int data = fpga_data->wf_data[i];
+      }
+
+      offset += 250;
+      printf("%d\n", offset);
     }
-    fwrite(&dialfreq, 1, 8, fp);
-    fwrite(&buffer[i * 240000], 1, 240000 * 8, fp);
-    fclose(fp);
+
+    clock_gettime(CLOCK_REALTIME, &stop_spec);
+    printf("RX: sample rate= %f (should close to 12000, otherwise there is bug)\n", 24000.0 / (stop_spec.tv_sec - start_spec.tv_sec + (stop_spec.tv_nsec - start_spec.tv_nsec) * 1e-9));
   }
 
   return EXIT_SUCCESS;
