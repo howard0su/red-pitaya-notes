@@ -38,26 +38,16 @@ cell xilinx.com:ip:proc_sys_reset rst_0 {} {
   slowest_sync_clk pll_0/clk_out1
 }
 
-# ADC
-
-# Create axis_red_pitaya_adc
-cell pavel-demin:user:axis_red_pitaya_adc adc_0 {
-  ADC_DATA_WIDTH 16
-} {
-  aclk pll_0/clk_out1
-  adc_dat_a adc_dat_a_i
-  adc_dat_b adc_dat_b_i
-  adc_csn adc_csn_o
-}
-
 # HUB
 
 # Address Space arrangement
 # Write Width: (CFG)
-#   RESET: 0 -  31, 32bits -> reset (bit 0 : rx, bit 1-4, wf, bit 8: pps)
+#   RESET: 0 - 15, 16bits -> reset (bit 0 : rx, bit 1-4, wf, bit 8: pps)
+#   SELECTOR: 16-31, 16bits -> bit0: 1->gen, 0->adc
 #   RX:  32  - 287, 256btis -> 8 channel freq （8*32)
-#   WF:  288 - 543 , 256bits -> 4 channel freq (4 * 32) + 4 channel cic step ( 4 * 32)
-#  Total 544 bits
+#   WF:  288 - 543, 256bits -> 4 channel freq (4 * 32) + 4 channel cic step ( 4 * 32)
+#   GEN: 544 - 575, 32bits -> Gen Freq(32bits)
+#  Total 576 bits
 # Read Width: (STS)
 #   RX FIFO: 0 - 31, 32bits
 #   WF CHANNEL0-3: 32-159, 32bits * 4 = 128bits.
@@ -67,7 +57,7 @@ cell pavel-demin:user:axis_red_pitaya_adc adc_0 {
 
 # Create axi_hub
 cell pavel-demin:user:axi_hub hub_0 {
-  CFG_DATA_WIDTH 544
+  CFG_DATA_WIDTH 576
   STS_DATA_WIDTH 256
 } {
   S_AXI ps_0/M_AXI_GP0
@@ -75,18 +65,65 @@ cell pavel-demin:user:axi_hub hub_0 {
   aresetn rst_0/peripheral_aresetn
 }
 
+# Signal Generation
+cell pavel-demin:user:port_slicer gen_freq_slice {
+  DIN_WIDTH 576 DIN_FROM 575 DIN_TO 544
+} {
+  din hub_0/cfg_data
+}
+
+cell pavel-demin:user:axis_constant gen_phase {
+  AXIS_TDATA_WIDTH 32
+} {
+  cfg_data gen_freq_slice/dout
+  aclk /pll_0/clk_out1
+}
+
+cell xilinx.com:ip:dds_compiler dds_gen {
+    DDS_CLOCK_RATE 125
+    SPURIOUS_FREE_DYNAMIC_RANGE 96
+    FREQUENCY_RESOLUTION 1
+    PHASE_INCREMENT Streaming
+    OUTPUT_SELECTION SINE
+    HAS_PHASE_OUT false
+    PHASE_WIDTH 30
+    OUTPUT_WIDTH 16
+    DSP48_USE Minimal
+    NEGATIVE_SINE false
+  } {
+    S_AXIS_PHASE gen_phase/M_AXIS
+    aclk /pll_0/clk_out1
+  }
+
+# ADC
+# Create axis_red_pitaya_adc
+cell pavel-demin:user:axis_red_pitaya_adc adc_0 {
+  ADC_DATA_WIDTH 16
+} {
+  aclk pll_0/clk_out1
+  adc_dat_a adc_dat_a_i
+  adc_dat_b dds_gen/m_axis_data_tdata
+  adc_csn adc_csn_o
+}
+
 # RX 0
 
 # Create port_slicer
 cell pavel-demin:user:port_slicer rst_slice {
-  DIN_WIDTH 544 DIN_FROM 7 DIN_TO 0
+  DIN_WIDTH 576 DIN_FROM 7 DIN_TO 0
+} {
+  din hub_0/cfg_data
+}
+
+cell pavel-demin:user:port_slicer select_slice {
+  DIN_WIDTH 576 DIN_FROM 15 DIN_TO 8
 } {
   din hub_0/cfg_data
 }
 
 # Create port_slicer
 cell pavel-demin:user:port_slicer cfg_slice_rx {
-  DIN_WIDTH 544 DIN_FROM 287 DIN_TO 32
+  DIN_WIDTH 576 DIN_FROM 287 DIN_TO 32
 } {
   din hub_0/cfg_data
 }
@@ -95,6 +132,7 @@ module rx_0 {
   source projects/sdr_receiver_kiwi/rx.tcl
 } {
   rst_slice_0/din rst_slice/dout
+  selector_slice_0/din select_slice/dout
   slice_1/din cfg_slice_rx/dout
   slice_2/din cfg_slice_rx/dout
   slice_3/din cfg_slice_rx/dout
@@ -110,7 +148,7 @@ module rx_0 {
 
 # Create port_slicer
 cell pavel-demin:user:port_slicer cfg_slice_wf {
-  DIN_WIDTH 544 DIN_FROM 543 DIN_TO 288
+  DIN_WIDTH 576 DIN_FROM 543 DIN_TO 288
 } {
   din hub_0/cfg_data
 }
@@ -141,7 +179,7 @@ module wf_0 {
 
 # PPS
 cell pavel-demin:user:port_slicer rst_slice_pps {
-  DIN_WIDTH 544 DIN_FROM 8 DIN_TO 8
+  DIN_WIDTH 576 DIN_FROM 8 DIN_TO 8
 } {
   din hub_0/cfg_data
 }

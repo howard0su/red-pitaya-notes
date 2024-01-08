@@ -23,13 +23,15 @@
 
 typedef struct
 {
-  uint32_t reset;
+  uint16_t reset;
+  uint16_t siggen;
   uint32_t rx_freq[8];
   struct
   {
     uint32_t wf_freq;
     uint32_t wf_decim;
   } wf_config[4];
+  uint32_t siggen_freq;
 }__attribute__((packed)) FPGA_Config;
 
 typedef struct

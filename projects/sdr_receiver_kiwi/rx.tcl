@@ -6,14 +6,27 @@ cell pavel-demin:user:port_slicer rst_slice_0 {
   DIN_WIDTH 8 DIN_FROM 0 DIN_TO 0
 }
 
+cell pavel-demin:user:port_slicer selector_slice_0 {
+  DIN_WIDTH 8 DIN_FROM 0 DIN_TO 0
+}
+
   for {set i 0} {$i <= 7} {incr i} {
 
-  # Create port_selector
-  cell pavel-demin:user:port_selector selector_$i {
-    DOUT_WIDTH 16
-  } {
-    cfg const_0/dout
-    din /adc_0/m_axis_tdata
+  # Create port_selector, only channel 0 IQ has selector
+  if {[expr {$i == 0 || $i == 1}]} {
+    cell pavel-demin:user:port_selector selector_$i {
+      DOUT_WIDTH 16
+    } {
+      cfg selector_slice_0/dout
+      din /adc_0/m_axis_tdata
+    }
+  } else {
+    cell pavel-demin:user:port_selector selector_$i {
+      DOUT_WIDTH 16
+    } {
+      cfg const_0/dout
+      din /adc_0/m_axis_tdata
+    }
   }
 
   # Create port_slicer
