@@ -50,14 +50,14 @@ for {set i 0} {$i <= 15} {incr i} {
 
   # Create port_slicer
   cell pavel-demin:user:port_slicer dds_slice_$i {
-    DIN_WIDTH 48 DIN_FROM [expr 24 * ($i % 2) + 20] DIN_TO [expr 24 * ($i % 2)]
+    DIN_WIDTH 48 DIN_FROM [expr 24 * ($i % 2) + 23] DIN_TO [expr 24 * ($i % 2)]
   } {
     din dds_[expr $i / 2]/m_axis_data_tdata
   }
 
   # Create dsp48
   cell pavel-demin:user:dsp48 mult_$i {
-    A_WIDTH 21
+    A_WIDTH 24
     B_WIDTH 16
     P_WIDTH 24
   } {
