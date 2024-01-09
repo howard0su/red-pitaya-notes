@@ -72,8 +72,8 @@ void print_current_time_with_ms(void)
          (intmax_t)s, ms);
 }
 
-#define ADC_FREQ (125.0 * (1 << 30))
-#define MAKE_FREQ(freq, corr) ((uint32_t)floor((1.0 + 1.0e-6 * corr) * freq / ADC_FREQ + 0.5))
+#define ADC_FREQ (125.0)
+#define MAKE_FREQ(freq, corr) ((uint32_t)floor((1.0 + 1.0e-6 * corr) * freq / ADC_FREQ * (1 << 30) + 0.5))
 
 int main(int argc, char *argv[])
 {
