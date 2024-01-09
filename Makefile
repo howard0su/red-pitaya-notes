@@ -138,6 +138,9 @@ tmp/%.tree/system-top.dts: tmp/%.xsa $(DTREE_DIR)
 	$(XSCT) scripts/devicetree.tcl $* $(PROC) $(DTREE_DIR)
 	sed -i 's|#include|/include/|' $@
 
+sim: tmp/$(NAME).xpr
+	$(VIVADO) -source scripts/simulate.tcl -tclargs $(NAME)
+
 clean:
 	$(RM) zImage.bin initrd.bin boot.bin boot-rootfs.bin initrd.dtb rootfs.dtb tmp
 	$(RM) .Xil usage_statistics_webtalk.html usage_statistics_webtalk.xml
