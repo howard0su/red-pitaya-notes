@@ -23,7 +23,7 @@ for {set i 0} {$i <= 3} {incr i} {
 
   # Create port_slicer for cic
   cell pavel-demin:user:port_slicer slice_[expr $i * 2 + 1] {
-    DIN_WIDTH 256 DIN_FROM [expr 32 * $i + 63] DIN_TO [expr 32 * $i + 32]
+    DIN_WIDTH 256 DIN_FROM [expr 32 * $i + 47] DIN_TO [expr 32 * $i + 32]
   }
 
   # Create axis_constant
