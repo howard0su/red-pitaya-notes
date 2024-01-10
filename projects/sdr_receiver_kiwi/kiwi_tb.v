@@ -86,7 +86,7 @@ module tb;
         intermediate_result = ((1.0* 15.0) / 125.0) * (1<<30);
         tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000008, 4, intermediate_result, resp);
         // Set Decimate of RX
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000008, 4, 500, resp);
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000000C, 4, 500, resp);
         #20
         // Reset WF0
         tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b0000, resp);
