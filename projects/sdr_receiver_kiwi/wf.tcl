@@ -52,8 +52,8 @@ for {set i 0} {$i <= 3} {incr i} {
 
 for {set i 0} {$i <= 7} {incr i} {
 
-  # Create axis_constant
-  cell pavel-demin:user:axis_constant rate_$i {
+  # Create axis_variable
+  cell pavel-demin:user:axis_variable rate_$i {
     AXIS_TDATA_WIDTH 16
   } {
     cfg_data slice_[expr ($i / 2) * 2 + 1]/dout
