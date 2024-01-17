@@ -39,9 +39,10 @@ module tb;
     //------------------------------------------------------------------------
     // Simple Clock Generator
     //------------------------------------------------------------------------
-    
-    always #10 tb_ACLK = !tb_ACLK;
-    always #4 adc_ACLK = !adc_ACLK;
+
+    // 125Mhz    
+    always #8 tb_ACLK = !tb_ACLK;
+    always #8 adc_ACLK = !adc_ACLK;
 
     always @ (posedge adc_ACLK)
         adc_data <= adc_data + 64;
@@ -58,23 +59,36 @@ module tb;
         tb_ARESETn = 1'b1;
         @(posedge tb_ACLK);
         
-        repeat(5) @(posedge tb_ACLK);
-          
-        //Reset the PL
-        tb.zynq_sys.system_i.ps_0.inst.fpga_soft_reset(32'h1);
-        tb.zynq_sys.system_i.ps_0.inst.fpga_soft_reset(32'h0);
-		#2000
-        // Set Freq of RX
-        intermediate_result = ((1.0 * 10.0) / 125.0) * (1<<30);
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000004, 4, intermediate_result, resp);
-
         #10
-        // Reset RX
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'h0000, resp);
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'h0001, resp);
+        repeat(5) @(posedge tb_ACLK);
+
+        //Reset the PL
+        tb.zynq_sys.system_i.ps_0.inst.fpga_soft_reset(32'h1); #10
+        tb.zynq_sys.system_i.ps_0.inst.fpga_soft_reset(32'h0); #10
 		#2000
+
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b0000, resp);         #10
+
+        // Set Freq of RX
+        intermediate_result = ((1.0 * 15.0) / 125.0) * (1<<30);
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000004, 4, intermediate_result, resp); #10
+
+        // Set Freq of WF
+        intermediate_result = ((1.0* 15.0) / 125.0) * (1<<30);
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000008, 4, intermediate_result, resp); #10
+        // Set Decimate of WF
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000000C, 4, 8, resp);                  #10
+
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000010, 4, intermediate_result, resp); #10
+        // Set Decimate of WF
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000014, 4, 16, resp);                  #10
+
+        // Reset RX
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b1111, resp);         #10
+
+		#10000
         // Read back fifo count
-        tb.zynq_sys.system_i.ps_0.inst.read_data(32'h41000000, 4, read_data,resp);
+        tb.zynq_sys.system_i.ps_0.inst.read_data(32'h41000000, 4, read_data, resp);
         if(read_data != 32'h0) begin
            $display ("RX FIFO Test PASSED");
         end
@@ -82,20 +96,19 @@ module tb;
            $display ("RX FIFO Test FAILED");
         end
 
-        // Set Freq of RX
-        intermediate_result = ((1.0* 15.0) / 125.0) * (1<<30);
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000008, 4, intermediate_result, resp);
-        // Set Decimate of RX
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000000C, 4, 500, resp);
-        #20
-        // Reset WF0
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b0000, resp);
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b0010, resp);
-        #200
         // Read back fifo count
         tb.zynq_sys.system_i.ps_0.inst.read_data(32'h41000004, 4, read_data,resp);
+
         if(read_data != 32'h0) begin
-           $display ("WF0 FIFO Test PASSED");
+           $display ("WF0 FIFO Test PASSED: %d", read_data);
+        end
+        else begin
+           $display ("WF0 FIFO Test FAILED");
+        end
+
+        tb.zynq_sys.system_i.ps_0.inst.read_data(32'h41000008, 4, read_data,resp);
+        if(read_data != 32'h0) begin
+           $display ("WF1 FIFO Test PASSED: %d", read_data);
         end
         else begin
            $display ("WF0 FIFO Test FAILED");
@@ -110,8 +123,7 @@ module tb;
    
     assign temp_adc_clk_p = adc_ACLK;
     assign temp_adc_clk_n = !adc_ACLK;
-
-    
+  
 system_wrapper zynq_sys
    (.DDR_addr(),
     .DDR_ba(),
