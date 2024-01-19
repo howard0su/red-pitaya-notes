@@ -28,12 +28,27 @@ module tb;
     reg [31:0] read_data;
     wire [3:0] leds;
     reg resp;
-    
+
+    integer i;
+    reg [15:0] sin_table_45MHz [0:255]; // 16-bit sine lookup table for 45MHz
+    reg [15:0] sin_table_5MHz [0:63];    // 16-bit sine lookup table for 5MHz
+    reg [7:0] phase_45MHz;
+    reg [5:0] phase_5MHz;
+
     initial 
     begin       
         tb_ACLK = 1'b0;
         adc_ACLK = 1'b0;
-        adc_data = 0;
+        phase_45MHz = 0;
+        phase_5MHz = 0;
+
+        for (i = 0; i <= 255; i = i + 1) begin
+            sin_table_45MHz[i] = $signed(16385 * $sin(i * 2 * 3.14159 / 256)); // Adjust amplitude as needed
+        end
+
+        for (i = 0; i <= 63; i = i + 1) begin
+            sin_table_5MHz[i] = $signed(16385 * $sin(i * 2 * 3.14159 / 64)); // Adjust amplitude as needed
+        end
     end
     
     //------------------------------------------------------------------------
@@ -44,9 +59,12 @@ module tb;
     always #8 tb_ACLK = !tb_ACLK;
     always #8 adc_ACLK = !adc_ACLK;
 
-    always @ (posedge adc_ACLK)
-        adc_data <= adc_data + 64;
-
+    always @ (posedge adc_ACLK) begin
+        // Increment phases
+        phase_45MHz <= phase_45MHz + 1;
+        phase_5MHz <= phase_5MHz + 1;
+        adc_data <= sin_table_45MHz[phase_45MHz] + sin_table_5MHz[phase_5MHz];
+    end
 
     reg[31:0]  intermediate_result;
     initial
@@ -69,24 +87,26 @@ module tb;
 
         tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b0000, resp);         #10
 
-        // Set Freq of RX
-        intermediate_result = ((1.0 * 15.0) / 125.0) * (1<<30);
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000004, 4, intermediate_result, resp); #10
+        // Set Freq of RX0-7
+        for (i = 0; i < 8; i = i + 1) begin
+            intermediate_result = ((i * 5.0) / 125.0) * (1<<30);
+            tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000004 + i * 4, 4, intermediate_result, resp);
+        end
 
         // Set Freq of WF
         intermediate_result = ((1.0* 15.0) / 125.0) * (1<<30);
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000008, 4, intermediate_result, resp); #10
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000024, 4, intermediate_result, resp); #10
         // Set Decimate of WF
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000000C, 4, 8, resp);                  #10
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000028, 4, 8, resp);                  #10
 
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000010, 4, intermediate_result, resp); #10
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000002c, 4, intermediate_result, resp); #10
         // Set Decimate of WF
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000014, 4, 16, resp);                  #10
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000030, 4, 16, resp);                  #10
 
         // Reset RX
         tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b1111, resp);         #10
 
-		#10000
+		#80000
         // Read back fifo count
         tb.zynq_sys.system_i.ps_0.inst.read_data(32'h41000000, 4, read_data, resp);
         if(read_data != 32'h0) begin
@@ -111,7 +131,7 @@ module tb;
            $display ("WF1 FIFO Test PASSED: %d", read_data);
         end
         else begin
-           $display ("WF0 FIFO Test FAILED");
+           $display ("WF1 FIFO Test FAILED");
         end
 
         $display ("Simulation completed");
