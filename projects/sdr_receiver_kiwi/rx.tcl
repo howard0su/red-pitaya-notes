@@ -68,11 +68,16 @@ for {set i 0} {$i <= 15} {incr i} {
     din dds_[expr $i / 2]/m_axis_data_tdata
   }
 
-  # Create dsp48
-  cell pavel-demin:user:dsp48 mult_$i {
-    A_WIDTH 24
-    B_WIDTH 16
-    P_WIDTH 24
+  # Create multipler
+  cell xilinx.com:ip:mult_gen:12.0 mult_$i {
+    PortAWidth.VALUE_SRC USER
+    PortBWidth.VALUE_SRC USER
+    Use_Custom_Output_Width true
+    OutputWidthHigh 24
+    PipeStages 4
+    PortAWidth 23
+    PortBWidth 16
+    Multiplier_Construction Use_Mults
   } {
     A dds_slice_$i/dout
     B selector_[expr $i / 2]/dout
