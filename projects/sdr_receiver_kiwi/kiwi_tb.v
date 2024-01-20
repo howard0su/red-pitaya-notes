@@ -23,7 +23,7 @@ module tb;
    
     wire temp_clk;
     wire temp_rstn;
-    reg [15:0] adc_data;
+    wire [15:0] adc_data;
    
     reg [31:0] read_data;
     wire [3:0] leds;
@@ -59,11 +59,13 @@ module tb;
     always #8 tb_ACLK = !tb_ACLK;
     always #8 adc_ACLK = !adc_ACLK;
 
+
+    assign adc_data = sin_table_45MHz[phase_45MHz] + sin_table_5MHz[phase_5MHz];
+        
     always @ (posedge adc_ACLK) begin
         // Increment phases
         phase_45MHz <= phase_45MHz + 1;
         phase_5MHz <= phase_5MHz + 1;
-        adc_data <= sin_table_45MHz[phase_45MHz] + sin_table_5MHz[phase_5MHz];
     end
 
     reg[31:0]  intermediate_result;
@@ -89,12 +91,12 @@ module tb;
 
         // Set Freq of RX0-7
         for (i = 0; i < 8; i = i + 1) begin
-            intermediate_result = ((i * 5.0) / 125.0) * (1<<30);
+            intermediate_result = 45.0e6/ 125.0e6 * (1 << 30) + 0.5;
             tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000004 + i * 4, 4, intermediate_result, resp);
         end
 
         // Set Freq of WF
-        intermediate_result = ((1.0* 15.0) / 125.0) * (1<<30);
+        intermediate_result = 45.0e6/ 125.0e6 * (1 << 30) + 0.5;
         tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000024, 4, intermediate_result, resp); #10
         // Set Decimate of WF
         tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000028, 4, 8, resp);                  #10
