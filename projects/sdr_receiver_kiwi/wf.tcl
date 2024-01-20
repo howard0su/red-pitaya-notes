@@ -1,5 +1,13 @@
 # Create xlconstant
-cell xilinx.com:ip:xlconstant const_0
+cell xilinx.com:ip:xlconstant const_0 {
+  CONST_WIDTH 1
+  CONST_VAL 0
+}
+
+cell xilinx.com:ip:xlconstant const_1 {
+  CONST_WIDTH 1
+  CONST_VAL 1
+}
 
 for {set i 0} {$i <= 3} {incr i} {
 
@@ -102,7 +110,7 @@ for {set i 0} {$i <= 7} {incr i} {
     HAS_ARESETN true
   } {
     s_axis_data_tdata mult_$i/P
-    s_axis_data_tvalid const_0/dout
+    s_axis_data_tvalid const_1/dout
     S_AXIS_CONFIG rate_$i/M_AXIS
     aclk /pll_0/clk_out1
     aresetn /rst_0/peripheral_aresetn
