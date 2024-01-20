@@ -80,13 +80,12 @@ for {set i 0} {$i <= 15} {incr i} {
   cell xilinx.com:ip:mult_gen:12.0 mult_$i {
     PortAWidth.VALUE_SRC USER
     PortBWidth.VALUE_SRC USER
-    PortBType.VALUE_SRC USER
     Use_Custom_Output_Width true
-    OutputWidthHigh 24
+    OutputWidthHigh 38
+    OutputWidthLow 15
     PipeStages 4
     PortAWidth 23
     PortBWidth 16
-    PortBType Unsigned
     Multiplier_Construction Use_Mults
   } {
     A dds_slice_$i/dout
