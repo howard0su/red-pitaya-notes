@@ -26,12 +26,12 @@ for {set i 0} {$i <= 3} {incr i} {
 
   # Create port_slicer for phase
   cell pavel-demin:user:port_slicer slice_[expr $i * 2] {
-    DIN_WIDTH 256 DIN_FROM [expr 32 * $i + 31] DIN_TO [expr 32 * $i]
+    DIN_WIDTH 256 DIN_FROM [expr 64 * $i + 31] DIN_TO [expr 64 * $i]
   }
 
   # Create port_slicer for cic
   cell pavel-demin:user:port_slicer slice_[expr $i * 2 + 1] {
-    DIN_WIDTH 256 DIN_FROM [expr 32 * $i + 47] DIN_TO [expr 32 * $i + 32]
+    DIN_WIDTH 256 DIN_FROM [expr 64 * $i + 47] DIN_TO [expr 64 * $i + 32]
   }
 
   # Create axis_constant
@@ -66,6 +66,7 @@ for {set i 0} {$i <= 7} {incr i} {
   } {
     cfg_data slice_[expr ($i / 2) * 2 + 1]/dout
     aclk /pll_0/clk_out1
+    aresetn /rst_0/peripheral_aresetn
   }
 
   # Create port_slicer
