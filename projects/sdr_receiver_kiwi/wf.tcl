@@ -45,11 +45,12 @@ for {set i 0} {$i <= 3} {incr i} {
   # Create dds_compiler
   cell xilinx.com:ip:dds_compiler dds_$i {
     DDS_CLOCK_RATE 125
-    SPURIOUS_FREE_DYNAMIC_RANGE 96
-    FREQUENCY_RESOLUTION 1
+    SPURIOUS_FREE_DYNAMIC_RANGE 120
+    FREQUENCY_RESOLUTION 0.2
     PHASE_INCREMENT Streaming
     HAS_PHASE_OUT false
-    OUTPUT_WIDTH 16
+    PHASE_WIDTH 30
+    OUTPUT_WIDTH 24
     DSP48_USE Minimal
     NEGATIVE_SINE true
   } {
@@ -71,7 +72,7 @@ for {set i 0} {$i <= 7} {incr i} {
 
   # Create port_slicer
   cell pavel-demin:user:port_slicer dds_slice_$i {
-    DIN_WIDTH 32 DIN_FROM [expr 16 * ($i % 2) + 15] DIN_TO [expr 16 * ($i % 2)]
+    DIN_WIDTH 48 DIN_FROM [expr 24 * ($i % 2) + 23] DIN_TO [expr 24 * ($i % 2)]
   } {
     din dds_[expr $i / 2]/m_axis_data_tdata
   }
@@ -84,7 +85,7 @@ for {set i 0} {$i <= 7} {incr i} {
     OutputWidthHigh 31
     OutputWidthLow 16
     PipeStages 4
-    PortAWidth 16
+    PortAWidth 24
     PortBWidth 16
     Multiplier_Construction Use_Mults
   } {
