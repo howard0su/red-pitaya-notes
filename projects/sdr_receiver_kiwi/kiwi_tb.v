@@ -26,6 +26,7 @@ module tb;
     wire [15:0] adc_data;
    
     reg [31:0] read_data;
+    reg [31:0] read_data2;
     wire [3:0] leds;
     reg resp;
 
@@ -108,7 +109,7 @@ module tb;
         // Reset RX
         tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b1111, resp);         #10
 
-		#80000
+		#40000
         // Read back fifo count
         tb.zynq_sys.system_i.ps_0.inst.read_data(32'h41000000, 4, read_data, resp);
         if(read_data != 32'h0) begin
@@ -121,6 +122,11 @@ module tb;
         // Read back fifo count
         tb.zynq_sys.system_i.ps_0.inst.read_data(32'h41000004, 4, read_data,resp);
 
+        for (i = 0; i < read_data; i = i + 1) begin
+            #5 tb.zynq_sys.system_i.ps_0.inst.read_data(32'h43000000 + i * 4, 4, read_data2,resp);
+        end
+
+        # 100
         if(read_data != 32'h0) begin
            $display ("WF0 FIFO Test PASSED: %d", read_data);
         end
