@@ -7,7 +7,13 @@ file delete -force tmp/cores/$core_name tmp/cores/$core_name.cache tmp/cores/$co
 
 create_project -part $part_name $core_name tmp/cores
 
-add_files -norecurse cores/$core_name.v
+if {[file isdirectory cores/$core_name]} {
+  # Use glob to expand the wildcard and get the list of Verilog files
+  set verilog_files [glob cores/$core_name/*.v]
+  add_files -norecurse cores/$core_name.v $verilog_files
+} else {
+  add_files -norecurse cores/$core_name.v
+}
 
 set_property TOP $core_name [current_fileset]
 
