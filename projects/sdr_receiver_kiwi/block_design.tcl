@@ -170,10 +170,10 @@ module wf_0 {
   slice_6/din cfg_slice_wf/dout
   slice_7/din cfg_slice_wf/dout
 
-  conv_0/M_AXIS hub_0/S01_AXIS
-  conv_1/M_AXIS hub_0/S02_AXIS
-  conv_2/M_AXIS hub_0/S03_AXIS
-  conv_3/M_AXIS hub_0/S04_AXIS
+  fifo_0/M_AXIS hub_0/S01_AXIS
+  fifo_1/M_AXIS hub_0/S02_AXIS
+  fifo_2/M_AXIS hub_0/S03_AXIS
+  fifo_3/M_AXIS hub_0/S04_AXIS
 }
 
 

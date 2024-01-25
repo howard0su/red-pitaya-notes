@@ -82,7 +82,7 @@ for {set i 0} {$i <= 7} {incr i} {
     PortAWidth.VALUE_SRC USER
     PortBWidth.VALUE_SRC USER
     Use_Custom_Output_Width true
-    OutputWidthHigh 31
+    OutputWidthHigh 39
     OutputWidthLow 16
     PipeStages 4
     PortAWidth 24
@@ -101,13 +101,13 @@ for {set i 0} {$i <= 7} {incr i} {
     NUMBER_OF_STAGES 5
     SAMPLE_RATE_CHANGES Programmable
     MINIMUM_RATE 4
-    MAXIMUM_RATE 4096
+    MAXIMUM_RATE 8192
     FIXED_OR_INITIAL_RATE 500
     INPUT_SAMPLE_FREQUENCY 125
     CLOCK_FREQUENCY 125
-    INPUT_DATA_WIDTH 16
+    INPUT_DATA_WIDTH 24
     QUANTIZATION Truncation
-    OUTPUT_DATA_WIDTH 16
+    OUTPUT_DATA_WIDTH 24
     USE_XTREME_DSP_SLICE false
     HAS_DOUT_TREADY true
     HAS_ARESETN true
@@ -141,17 +141,6 @@ for {set i 0} {$i <= 3} {incr i} {
     ALWAYS_READY TRUE
   } {
     S_AXIS comb_$i/M_AXIS
-    aclk /pll_0/clk_out1
-    aresetn rst_slice_$i/dout
-  }
-
-  # Create axis_dwidth_converter
-  cell xilinx.com:ip:axis_dwidth_converter conv_$i {
-    S_TDATA_NUM_BYTES.VALUE_SRC USER
-    S_TDATA_NUM_BYTES 4
-    M_TDATA_NUM_BYTES 4
-  } {
-    S_AXIS fifo_$i/M_AXIS
     aclk /pll_0/clk_out1
     aresetn rst_slice_$i/dout
   }
