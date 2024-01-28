@@ -107,23 +107,9 @@ for {set i 0} {$i <= 7} {incr i} {
     CLK /pll_0/clk_out1
   }
 
+
   # Create cic_compiler
-  cell xilinx.com:ip:cic_compiler cic_$i {
-    INPUT_DATA_WIDTH.VALUE_SRC USER
-    FILTER_TYPE Decimation
-    NUMBER_OF_STAGES 5
-    SAMPLE_RATE_CHANGES Programmable
-    MINIMUM_RATE 4
-    MAXIMUM_RATE 8192
-    FIXED_OR_INITIAL_RATE 500
-    INPUT_SAMPLE_FREQUENCY 125
-    CLOCK_FREQUENCY 125
-    INPUT_DATA_WIDTH 24
-    QUANTIZATION Truncation
-    OUTPUT_DATA_WIDTH 24
-    USE_XTREME_DSP_SLICE false
-    HAS_DOUT_TREADY true
-    HAS_ARESETN true
+  cell pavel-demin:user:kiwi_wf_cic cic_$i {
   } {
     s_axis_data_tdata mult_$i/P
     s_axis_data_tvalid const_1/dout

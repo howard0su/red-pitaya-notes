@@ -182,21 +182,35 @@ assign out = comb5_data[19 -:16] + comb5_data[3];	// trunc 4 bits, rounding appl
 
 
     // pre-shift input data to top bits of max case sized (ACC_WIDTH) first integrator stage
+    
+    // valid only when value is power of 2
+function integer clog2(input integer value);
+	begin
+		if (value <= 1) begin
+			clog2 = 1;
+		end else
+		begin
+			value = value-1;
+			for (clog2=0; value>0; clog2=clog2+1)
+				value = value >> 1;
+		end
+	end 
+endfunction
 
-	localparam GROWTH_R2	= STAGES * $clog2(2);
-	localparam GROWTH_R4	= STAGES * $clog2(4);
-	localparam GROWTH_R8	= STAGES * $clog2(8);
-	localparam GROWTH_R16	= STAGES * $clog2(16);
-	localparam GROWTH_R32	= STAGES * $clog2(32);
-	localparam GROWTH_R64	= STAGES * $clog2(64);
-	localparam GROWTH_R128	= STAGES * $clog2(128);
-	localparam GROWTH_R256	= STAGES * $clog2(256);
-	localparam GROWTH_R512	= STAGES * $clog2(512);
-	localparam GROWTH_R1K	= STAGES * $clog2(1024);
-	localparam GROWTH_R2K	= STAGES * $clog2(2048);
-	localparam GROWTH_R4K	= STAGES * $clog2(4096);
-	localparam GROWTH_R8K	= STAGES * $clog2(8192);
-	localparam GROWTH_R16K	= STAGES * $clog2(16384);
+	localparam GROWTH_R2	= STAGES * clog2(2);
+	localparam GROWTH_R4	= STAGES * clog2(4);
+	localparam GROWTH_R8	= STAGES * clog2(8);
+	localparam GROWTH_R16	= STAGES * clog2(16);
+	localparam GROWTH_R32	= STAGES * clog2(32);
+	localparam GROWTH_R64	= STAGES * clog2(64);
+	localparam GROWTH_R128	= STAGES * clog2(128);
+	localparam GROWTH_R256	= STAGES * clog2(256);
+	localparam GROWTH_R512	= STAGES * clog2(512);
+	localparam GROWTH_R1K	= STAGES * clog2(1024);
+	localparam GROWTH_R2K	= STAGES * clog2(2048);
+	localparam GROWTH_R4K	= STAGES * clog2(4096);
+	localparam GROWTH_R8K	= STAGES * clog2(8192);
+	localparam GROWTH_R16K	= STAGES * clog2(16384);
 	
 	localparam ACC_R2		= IN_WIDTH + GROWTH_R2;
 	localparam ACC_R4		= IN_WIDTH + GROWTH_R4;
