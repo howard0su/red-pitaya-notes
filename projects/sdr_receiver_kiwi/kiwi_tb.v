@@ -96,24 +96,32 @@ module tb;
             #1 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000004 + i * 4, 4, intermediate_result, resp);
         end
 
+        intermediate_result = 10.0e6/ 125.0e6 * (1 << 30) + 0.5;
+
         // set gen freq
         #2
-        intermediate_result = 10.0e6/ 125.0e6 * (1 << 30) + 0.5;
         tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000044, 4, intermediate_result, resp);
 
-        // Set Freq of WF
+        // Configure WF0
         #2
         intermediate_result = 45.0e6/ 125.0e6 * (1 << 30) + 0.5;
         #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000024, 4, intermediate_result, resp);
-        // Set Decimate of WF
-        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000028, 4, 8, resp);
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000028, 4, 1, resp);
 
+        // Configure WF1
         #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000002c, 4, intermediate_result, resp);
-        // Set Decimate of WF
-        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000030, 4, 16, resp);
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000030, 4, 2, resp);
+
+        // Configure WF2
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000034, 4, intermediate_result, resp);
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000038, 4, 4, resp);
+
+        // Configure WF3
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000003c, 4, intermediate_result, resp);
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000040, 4, 256, resp);
 
         // Reset RX
-        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 4, 32'h0001FFFF, resp);
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 4, 32'h00000FF, resp);
 
 		#40000
         // Read back fifo count
@@ -132,7 +140,7 @@ module tb;
             #5 tb.zynq_sys.system_i.ps_0.inst.read_data(32'h43000000 + i * 4, 4, read_data2,resp);
         end
 
-        # 100
+        # 10
         if(read_data != 32'h0) begin
            $display ("WF0 FIFO Test PASSED: %d", read_data);
         end
@@ -140,6 +148,7 @@ module tb;
            $display ("WF0 FIFO Test FAILED");
         end
 
+        # 10
         tb.zynq_sys.system_i.ps_0.inst.read_data(32'h41000008, 4, read_data,resp);
         if(read_data != 32'h0) begin
            $display ("WF1 FIFO Test PASSED: %d", read_data);
