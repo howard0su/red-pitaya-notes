@@ -161,6 +161,8 @@ module wf_0 {
   rst_slice_2/din rst_slice/dout
   rst_slice_3/din rst_slice/dout
 
+  selector_slice_0/din select_slice/dout
+
   slice_0/din cfg_slice_wf/dout
   slice_1/din cfg_slice_wf/dout
   slice_2/din cfg_slice_wf/dout

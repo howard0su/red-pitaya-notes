@@ -21,7 +21,7 @@ cell pavel-demin:user:port_slicer selector_slice_0 {
   for {set i 0} {$i <= 7} {incr i} {
 
   # Create port_selector, only channel 0 IQ has selector
-  if {[expr {$i == 0 || $i == 1}]} {
+  if {[expr {$i == 0}]} {
     cell pavel-demin:user:port_selector selector_$i {
       DOUT_WIDTH 16
     } {

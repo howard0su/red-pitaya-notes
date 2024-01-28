@@ -88,26 +88,32 @@ module tb;
         tb.zynq_sys.system_i.ps_0.inst.fpga_soft_reset(32'h0); #10
 		#2000
 
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b0000, resp);         #10
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b0000, resp);
 
         // Set Freq of RX0-7
         for (i = 0; i < 8; i = i + 1) begin
             intermediate_result = 45.0e6/ 125.0e6 * (1 << 30) + 0.5;
-            tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000004 + i * 4, 4, intermediate_result, resp);
+            #1 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000004 + i * 4, 4, intermediate_result, resp);
         end
 
-        // Set Freq of WF
-        intermediate_result = 45.0e6/ 125.0e6 * (1 << 30) + 0.5;
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000024, 4, intermediate_result, resp); #10
-        // Set Decimate of WF
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000028, 4, 8, resp);                  #10
+        // set gen freq
+        #2
+        intermediate_result = 10.0e6/ 125.0e6 * (1 << 30) + 0.5;
+        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000044, 4, intermediate_result, resp);
 
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000002c, 4, intermediate_result, resp); #10
+        // Set Freq of WF
+        #2
+        intermediate_result = 45.0e6/ 125.0e6 * (1 << 30) + 0.5;
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000024, 4, intermediate_result, resp);
         // Set Decimate of WF
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000030, 4, 16, resp);                  #10
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000028, 4, 8, resp);
+
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h4000002c, 4, intermediate_result, resp);
+        // Set Decimate of WF
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000030, 4, 16, resp);
 
         // Reset RX
-        tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 2, 16'b1111, resp);         #10
+        #10 tb.zynq_sys.system_i.ps_0.inst.write_data(32'h40000000, 4, 32'h0001FFFF, resp);
 
 		#40000
         // Read back fifo count
