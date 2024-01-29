@@ -33,6 +33,7 @@ module cic_prune_var (
 	input wire clock,
 	input wire reset,
 	input wire [MD-1:0] decimation,
+    input wire decimation_set,
 	input wire in_strobe,
 	output reg out_strobe,
 	input wire signed [IN_WIDTH-1:0] in_data,
@@ -60,6 +61,12 @@ module cic_prune_var (
     endgenerate
     
     always @(posedge clock)
+      if (decimation_set)
+      begin
+        out_strobe <= 0;
+        sample_no <= 0;
+      end
+      else
       if (in_strobe)
         begin
         if (sample_no == (decim-1))
@@ -79,138 +86,25 @@ module cic_prune_var (
     reg signed [ACC_WIDTH-1:0] in;
     wire signed [OUT_WIDTH-1:0] out;
     
-wire signed [88:0] integrator0_data;
-wire signed [88:0] integrator1_data;
-wire signed [88:0] integrator2_data;
-wire signed [88:0] integrator3_data;
-wire signed [88:0] integrator4_data;
-wire signed [27:0] integrator5_data;
-wire signed [27:0] comb0_data;
-wire signed [22:0] comb1_data;
-wire signed [21:0] comb2_data;
-wire signed [20:0] comb3_data;
-wire signed [19:0] comb4_data;
-wire signed [19:0] comb5_data;
-
-// important that "in" be declared signed by wrapper code
-// so this assignment will sign-extend:
-assign integrator0_data = in;
-
-cic_integrator #(.WIDTH(89)) cic_integrator1_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(in_strobe),
-	.in_data(integrator0_data[88 -:89]),	// trunc 0 bits (should always be zero)
-	.out_data(integrator1_data)
-);
-
-cic_integrator #(.WIDTH(89)) cic_integrator2_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(in_strobe),
-	.in_data(integrator1_data[88 -:89]),	// trunc 0 bits 
-	.out_data(integrator2_data)
-);
-
-cic_integrator #(.WIDTH(89)) cic_integrator3_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(in_strobe),
-	.in_data(integrator2_data[88 -:89]),	// trunc 0 bits 
-	.out_data(integrator3_data)
-);
-
-cic_integrator #(.WIDTH(89)) cic_integrator4_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(in_strobe),
-	.in_data(integrator3_data[88 -:89]),	// trunc 0 bits 
-	.out_data(integrator4_data)
-);
-
-cic_integrator #(.WIDTH(28)) cic_integrator5_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(in_strobe),
-	.in_data(integrator4_data[88 -:28]),	// trunc 61 bits 
-	.out_data(integrator5_data)
-);
-
-assign comb0_data = integrator5_data;
-
-cic_comb #(.WIDTH(23)) cic_comb1_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(out_strobe),
-	.in_data(comb0_data[27 -:23]),	// trunc 5 bits 
-	.out_data(comb1_data)
-);
-
-cic_comb #(.WIDTH(22)) cic_comb2_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(out_strobe),
-	.in_data(comb1_data[22 -:22]),	// trunc 1 bits 
-	.out_data(comb2_data)
-);
-
-cic_comb #(.WIDTH(21)) cic_comb3_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(out_strobe),
-	.in_data(comb2_data[21 -:21]),	// trunc 1 bits 
-	.out_data(comb3_data)
-);
-
-cic_comb #(.WIDTH(20)) cic_comb4_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(out_strobe),
-	.in_data(comb3_data[20 -:20]),	// trunc 1 bits 
-	.out_data(comb4_data)
-);
-
-cic_comb #(.WIDTH(20)) cic_comb5_inst(
-	.clock(clock),
-	.reset(reset),
-	.strobe(out_strobe),
-	.in_data(comb4_data[19 -:20]),	// trunc 0 bits 
-	.out_data(comb5_data)
-);
-
-assign out = comb5_data[19 -:16] + comb5_data[3];	// trunc 4 bits, rounding applied
+    `include "cic_wf1.vh"
 
 
     // pre-shift input data to top bits of max case sized (ACC_WIDTH) first integrator stage
-    
-    // valid only when value is power of 2
-function integer clog2(input integer value);
-	begin
-		if (value <= 1) begin
-			clog2 = 1;
-		end else
-		begin
-			value = value-1;
-			for (clog2=0; value>0; clog2=clog2+1)
-				value = value >> 1;
-		end
-	end 
-endfunction
 
-	localparam GROWTH_R2	= STAGES * clog2(2);
-	localparam GROWTH_R4	= STAGES * clog2(4);
-	localparam GROWTH_R8	= STAGES * clog2(8);
-	localparam GROWTH_R16	= STAGES * clog2(16);
-	localparam GROWTH_R32	= STAGES * clog2(32);
-	localparam GROWTH_R64	= STAGES * clog2(64);
-	localparam GROWTH_R128	= STAGES * clog2(128);
-	localparam GROWTH_R256	= STAGES * clog2(256);
-	localparam GROWTH_R512	= STAGES * clog2(512);
-	localparam GROWTH_R1K	= STAGES * clog2(1024);
-	localparam GROWTH_R2K	= STAGES * clog2(2048);
-	localparam GROWTH_R4K	= STAGES * clog2(4096);
-	localparam GROWTH_R8K	= STAGES * clog2(8192);
-	localparam GROWTH_R16K	= STAGES * clog2(16384);
+	localparam GROWTH_R2	= STAGES * $clog2(2);
+	localparam GROWTH_R4	= STAGES * $clog2(4);
+	localparam GROWTH_R8	= STAGES * $clog2(8);
+	localparam GROWTH_R16	= STAGES * $clog2(16);
+	localparam GROWTH_R32	= STAGES * $clog2(32);
+	localparam GROWTH_R64	= STAGES * $clog2(64);
+	localparam GROWTH_R128	= STAGES * $clog2(128);
+	localparam GROWTH_R256	= STAGES * $clog2(256);
+	localparam GROWTH_R512	= STAGES * $clog2(512);
+	localparam GROWTH_R1K	= STAGES * $clog2(1024);
+	localparam GROWTH_R2K	= STAGES * $clog2(2048);
+	localparam GROWTH_R4K	= STAGES * $clog2(4096);
+	localparam GROWTH_R8K	= STAGES * $clog2(8192);
+	localparam GROWTH_R16K	= STAGES * $clog2(16384);
 	
 	localparam ACC_R2		= IN_WIDTH + GROWTH_R2;
 	localparam ACC_R4		= IN_WIDTH + GROWTH_R4;
@@ -249,6 +143,28 @@ endfunction
                   16: in <= in_data << (ACC_WIDTH - ACC_R16);
                   32: in <= in_data << (ACC_WIDTH - ACC_R32);
                   64: in <= in_data << (ACC_WIDTH - ACC_R64);
+             default: in <= in_data;
+            endcase
+        end
+    endgenerate
+
+    generate
+        if (DECIMATION == -1024)
+        begin
+        
+        always @(posedge clock)
+            case (decim)
+                   1: in <= in_data;
+                   2: in <= in_data << (ACC_WIDTH - ACC_R2);
+                   4: in <= in_data << (ACC_WIDTH - ACC_R4);
+                   8: in <= in_data << (ACC_WIDTH - ACC_R8);
+                  16: in <= in_data << (ACC_WIDTH - ACC_R16);
+                  32: in <= in_data << (ACC_WIDTH - ACC_R32);
+                  64: in <= in_data << (ACC_WIDTH - ACC_R64);
+                 128: in <= in_data << (ACC_WIDTH - ACC_R128);
+                 256: in <= in_data << (ACC_WIDTH - ACC_R256);
+                 512: in <= in_data << (ACC_WIDTH - ACC_R512);
+                1024: in <= in_data << (ACC_WIDTH - ACC_R1K);
              default: in <= in_data;
             endcase
         end
