@@ -8,7 +8,8 @@ module axis_ram_writer #
   parameter integer AXI_ADDR_WIDTH = 32,
   parameter integer AXI_DATA_WIDTH = 64,
   parameter integer AXIS_TDATA_WIDTH = 64,
-  parameter integer FIFO_WRITE_DEPTH = 512
+  parameter integer FIFO_WRITE_DEPTH = 512,
+  parameter integer AXI_WRITE_ID = 0
 )
 (
   // System signals
@@ -142,13 +143,14 @@ module axis_ram_writer #
 
   assign sts_data = int_addr_reg;
 
-  assign m_axi_awid = {(AXI_ID_WIDTH){1'b0}};
+  assign m_axi_awid = {(AXI_ID_WIDTH){AXI_WRITE_ID}};
+  assign m_axi_wid = {(AXI_ID_WIDTH){AXI_WRITE_ID}};
+
   assign m_axi_awlen = 4'd15;
   assign m_axi_awsize = ADDR_SIZE;
   assign m_axi_awburst = 2'b01;
   assign m_axi_awcache = 4'b1010;
 
-  assign m_axi_wid = {(AXI_ID_WIDTH){1'b0}};
   assign m_axi_wstrb = {(AXI_DATA_WIDTH/8){1'b1}};
 
   assign m_axi_bready = 1'b1;
