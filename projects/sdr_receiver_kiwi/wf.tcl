@@ -136,7 +136,7 @@ for {set i 0} {$i <= 3} {incr i} {
   cell pavel-demin:user:axis_fifo fifo_$i {
     S_AXIS_TDATA_WIDTH 32
     M_AXIS_TDATA_WIDTH 32
-    WRITE_DEPTH 1024
+    WRITE_DEPTH 4096
     ALWAYS_READY TRUE
   } {
     S_AXIS comb_$i/M_AXIS
