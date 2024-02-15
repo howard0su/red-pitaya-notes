@@ -18,6 +18,10 @@ cell pavel-demin:user:port_slicer selector_slice_0 {
   DIN_WIDTH 8 DIN_FROM 0 DIN_TO 0
 }
 
+cell  pavel-demin:user:port_slicer cfg_slice {
+  DIN_WIDTH 256 DIN_FROM 255 DIN_TO 0
+}
+
   for {set i 0} {$i <= 7} {incr i} {
 
   # Create port_selector, only channel 0 IQ has selector
@@ -40,6 +44,8 @@ cell pavel-demin:user:port_slicer selector_slice_0 {
   # Create port_slicer
   cell pavel-demin:user:port_slicer slice_[expr $i + 1] {
     DIN_WIDTH 256 DIN_FROM [expr 32 * $i + 31] DIN_TO [expr 32 * $i]
+  } {
+    din cfg_slice/dout
   }
 
   # Create axis_constant
@@ -84,7 +90,7 @@ for {set i 0} {$i <= 15} {incr i} {
     OutputWidthHigh 38
     OutputWidthLow 15
     PipeStages 4
-    PortAWidth 23
+    PortAWidth 24
     PortBWidth 16
     Multiplier_Construction Use_Mults
   } {

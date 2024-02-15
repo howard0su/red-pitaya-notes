@@ -133,14 +133,8 @@ module rx_0 {
 } {
   rst_slice_0/din rst_slice/dout
   selector_slice_0/din select_slice/dout
-  slice_1/din cfg_slice_rx/dout
-  slice_2/din cfg_slice_rx/dout
-  slice_3/din cfg_slice_rx/dout
-  slice_4/din cfg_slice_rx/dout
-  slice_5/din cfg_slice_rx/dout
-  slice_6/din cfg_slice_rx/dout
-  slice_7/din cfg_slice_rx/dout
-  slice_8/din cfg_slice_rx/dout
+  cfg_slice/din cfg_slice_rx/dout
+
   conv_2/M_AXIS hub_0/S00_AXIS
 }
 
