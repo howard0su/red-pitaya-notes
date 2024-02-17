@@ -8,7 +8,7 @@
 # solution taken from http://www.googoolia.com/wp/2015/04/21/awk-symbol-lookup-error-awk-undefined-symbol-mpfr_z_sub/
 LD_LIBRARY_PATH =
 
-NAME = led_blinker
+NAME = sdr_receiver_kiwi
 PART = xc7z010clg400-1
 PROC = ps7_cortexa9_0
 
