@@ -137,7 +137,7 @@ for {set i 0} {$i <= 3} {incr i} {
     S_AXIS_TDATA_WIDTH 32
     M_AXIS_TDATA_WIDTH 32
     WRITE_DEPTH 4096
-    ALWAYS_READY TRUE
+    ALWAYS_READY FALSE
   } {
     S_AXIS comb_$i/M_AXIS
     aclk /pll_0/clk_out1

@@ -198,7 +198,7 @@ cell pavel-demin:user:axis_fifo fifo_0 {
   S_AXIS_TDATA_WIDTH 512
   M_AXIS_TDATA_WIDTH 512
   WRITE_DEPTH 2048
-  ALWAYS_READY TRUE
+  ALWAYS_READY FALSE
 } {
   S_AXIS conv_1/M_AXIS
   aclk /pll_0/clk_out1
