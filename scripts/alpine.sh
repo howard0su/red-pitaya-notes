@@ -60,15 +60,6 @@ ln -s /media/mmcblk0p1/cache $root_dir/etc/apk/cache
 cp -r alpine/etc $root_dir/
 cp -r alpine/apps $root_dir/media/mmcblk0p1/
 
-projects="sdr_receiver_kiwi"
-
-for p in $projects
-do
-  mkdir -p $root_dir/media/mmcblk0p1/apps/$p
-  cp -r projects/$p/server/* $root_dir/media/mmcblk0p1/apps/$p/
-  cp -r projects/$p/app/* $root_dir/media/mmcblk0p1/apps/$p/
-  cp tmp/$p.bit $root_dir/media/mmcblk0p1/apps/$p/
-done
 
 cp -r alpine-apk/sbin $root_dir/
 
@@ -128,7 +119,6 @@ alias rw='mount -o rw,remount /media/mmcblk0p1'
 alias ro='mount -o ro,remount /media/mmcblk0p1'
 EOF_CAT
 
-ln -s /media/mmcblk0p1/apps root/apps
 ln -s /media/mmcblk0p1/wifi root/wifi
 
 lbu add root
@@ -139,9 +129,11 @@ lbu commit -d
 
 EOF_CHROOT
 
-cp -r $root_dir/media/mmcblk0p1/apps .
 cp -r $root_dir/media/mmcblk0p1/cache .
 cp $root_dir/media/mmcblk0p1/red-pitaya.apkovl.tar.gz .
+cp -r  /home/junsu/alpine/root/root/build/htdoc .
+cp -r  /home/junsu/alpine/root/root/build/kiwi.bin .
+cp -r  tmp/sdr_receiver_kiwi.bit  .
 
 cp -r alpine/wifi .
 
@@ -149,6 +141,6 @@ hostname -F /etc/hostname
 
 rm -rf $root_dir alpine-apk
 
-zip -r red-pitaya-alpine-3.18-armv7-`date +%Y%m%d`.zip apps boot.bin cache modloop red-pitaya.apkovl.tar.gz wifi
+zip -r red-pitaya-alpine-3.18-armv7-`date +%Y%m%d`.zip boot.bin cache modloop red-pitaya.apkovl.tar.gz wifi htdoc kiwi.bin *.bit
 
-rm -rf apps cache modloop red-pitaya.apkovl.tar.gz wifi
+rm -rf apps cache modloop red-pitaya.apkovl.tar.gz wifi kiwi.bin htdoc *.bit
