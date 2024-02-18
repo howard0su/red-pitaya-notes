@@ -131,7 +131,7 @@ EOF_CHROOT
 
 cp -r $root_dir/media/mmcblk0p1/cache .
 cp $root_dir/media/mmcblk0p1/red-pitaya.apkovl.tar.gz .
-cp -r  /home/junsu/alpine/root/root/build/htdoc .
+cp -r  /home/junsu/alpine/root/root/build/config .
 cp -r  /home/junsu/alpine/root/root/build/kiwi.bin .
 cp -r  tmp/sdr_receiver_kiwi.bit  .
 
@@ -141,6 +141,6 @@ hostname -F /etc/hostname
 
 rm -rf $root_dir alpine-apk
 
-zip -r red-pitaya-alpine-3.18-armv7-`date +%Y%m%d`.zip boot.bin cache modloop red-pitaya.apkovl.tar.gz wifi htdoc kiwi.bin *.bit
+zip -r red-pitaya-alpine-3.18-armv7-`date +%Y%m%d`.zip boot.bin cache modloop red-pitaya.apkovl.tar.gz wifi config kiwi.bin *.bit
 
-rm -rf apps cache modloop red-pitaya.apkovl.tar.gz wifi kiwi.bin htdoc *.bit
+rm -rf apps cache modloop red-pitaya.apkovl.tar.gz wifi kiwi.bin config *.bit
