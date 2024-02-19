@@ -2,5 +2,6 @@
 cat /media/mmcblk0p1/sdr_receiver_kiwi.bit > /dev/xdevcfg
 cp /media/mmcblk0p1/kiwi.bin /root/kiwi.bin
 cp -Rf /media/mmcblk0p1/config /root/config
+ln -s /media/mmcblk0p1/libfdk-aac.so /usr/lib/libfdk-aac.so.2
 cd /root
 /root/kiwi.bin &

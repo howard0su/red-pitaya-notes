@@ -71,7 +71,7 @@ echo $alpine_url/community >> $root_dir/etc/apk/repositories
 chroot $root_dir /bin/sh <<- EOF_CHROOT
 
 apk update
-apk add openssh u-boot-tools ucspi-tcp6 iw wpa_supplicant dhcpcd dnsmasq hostapd iptables avahi dbus dcron chrony gpsd nano zlib libsndfile fftw-single-libs fdk-aac curl
+apk add openssh u-boot-tools ucspi-tcp6 iw wpa_supplicant dhcpcd dnsmasq hostapd iptables avahi dbus dcron chrony gpsd nano zlib libsndfile fftw-single-libs curl
 
 rc-update add bootmisc boot
 rc-update add hostname boot
@@ -133,6 +133,7 @@ cp -r $root_dir/media/mmcblk0p1/cache .
 cp $root_dir/media/mmcblk0p1/red-pitaya.apkovl.tar.gz .
 cp -r  /home/junsu/alpine/root/root/build/config .
 cp -r  /home/junsu/alpine/root/root/build/kiwi.bin .
+cp -r  /home/junsu/alpine/root/root/build/libfdk-aac.so .
 cp -r  tmp/sdr_receiver_kiwi.bit  .
 
 cp -r alpine/wifi .
@@ -141,6 +142,6 @@ hostname -F /etc/hostname
 
 rm -rf $root_dir alpine-apk
 
-zip -r red-pitaya-alpine-3.18-armv7-`date +%Y%m%d`.zip boot.bin cache modloop red-pitaya.apkovl.tar.gz wifi config kiwi.bin *.bit
+zip -r red-pitaya-alpine-3.18-armv7-`date +%Y%m%d`.zip boot.bin cache modloop red-pitaya.apkovl.tar.gz wifi config libfdk-aac.so kiwi.bin *.bit
 
-rm -rf apps cache modloop red-pitaya.apkovl.tar.gz wifi kiwi.bin config *.bit
+rm -rf apps cache modloop red-pitaya.apkovl.tar.gz wifi kiwi.bin config *.bit libfdk-aac.so
