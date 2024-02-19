@@ -121,10 +121,7 @@ for {set i 0} {$i <= 7} {incr i} {
 
 for {set i 0} {$i <= 3} {incr i} {
   # Create axis_combiner
-  cell  xilinx.com:ip:axis_combiner comb_$i {
-    TDATA_NUM_BYTES.VALUE_SRC USER
-    TDATA_NUM_BYTES 2
-    NUM_SI 2
+  cell  pavel-demin:user:axis_comb_sync comb_$i {
   } {
     S00_AXIS cic_[expr $i * 2]/M_AXIS_DATA
     S01_AXIS cic_[expr $i * 2 + 1]/M_AXIS_DATA
