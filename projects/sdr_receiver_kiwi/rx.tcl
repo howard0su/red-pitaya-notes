@@ -197,7 +197,7 @@ cell xilinx.com:ip:axis_dwidth_converter conv_1 {
 cell pavel-demin:user:axis_fifo fifo_0 {
   S_AXIS_TDATA_WIDTH 512
   M_AXIS_TDATA_WIDTH 512
-  WRITE_DEPTH 2048
+  WRITE_DEPTH 1024
   ALWAYS_READY FALSE
 } {
   S_AXIS conv_1/M_AXIS
