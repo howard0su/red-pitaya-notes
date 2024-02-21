@@ -9,6 +9,9 @@ cell xilinx.com:ip:xlconstant const_1 {
   CONST_VAL 1
 }
 
+
+set rx_chan 8
+
 # Create port_slicer
 cell pavel-demin:user:port_slicer rst_slice_0 {
   DIN_WIDTH 8 DIN_FROM 0 DIN_TO 0
@@ -19,10 +22,11 @@ cell pavel-demin:user:port_slicer selector_slice_0 {
 }
 
 cell  pavel-demin:user:port_slicer cfg_slice {
-  DIN_WIDTH 256 DIN_FROM 255 DIN_TO 0
+  DIN_WIDTH [expr 32 * $rx_chan] DIN_FROM 255 DIN_TO 0
 }
 
-  for {set i 0} {$i <= 7} {incr i} {
+
+  for {set i 0} {$i < $rx_chan} {incr i} {
 
   # Create port_selector, only channel 0 IQ has selector
   if {[expr {$i == 0}]} {
@@ -43,7 +47,7 @@ cell  pavel-demin:user:port_slicer cfg_slice {
 
   # Create port_slicer
   cell pavel-demin:user:port_slicer slice_[expr $i + 1] {
-    DIN_WIDTH 256 DIN_FROM [expr 32 * $i + 31] DIN_TO [expr 32 * $i]
+    DIN_WIDTH [expr 32 * $rx_chan] DIN_FROM [expr 32 * $i + 31] DIN_TO [expr 32 * $i]
   } {
     din cfg_slice/dout
   }
@@ -73,7 +77,7 @@ cell  pavel-demin:user:port_slicer cfg_slice {
   }
 }
 
-for {set i 0} {$i <= 15} {incr i} {
+for {set i 0} {$i < 2 * $rx_chan} {incr i} {
 
   # Create port_slicer
   cell pavel-demin:user:port_slicer dds_slice_$i {
